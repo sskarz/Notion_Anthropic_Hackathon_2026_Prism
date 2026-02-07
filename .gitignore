@@ -180,4 +180,10 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-node_modules
+# Node
+node_modules/
+dist/
+.DS_Store
+
+CLAUDE.md
+.claude/
