@@ -1,0 +1,1 @@
+Users cannot export sprint burndown report data to CSV.
