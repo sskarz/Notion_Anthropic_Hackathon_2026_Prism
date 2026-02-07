@@ -4,6 +4,7 @@ import Prism from './components/Prism';
 import PanelContainer from './components/shared/PanelContainer';
 import IDELayout from './layouts/IDELayout';
 import HeroPage from './components/HeroPage';
+import LiveKitSession from './components/LiveKitSession';
 
 function App() {
   const [view, setView] = useState<'hero' | 'ide'>('hero');
@@ -38,11 +39,7 @@ function App() {
           }
           center={
             <PanelContainer title="Interview" icon={MessageSquare} active>
-              <div className="space-y-3">
-                <div className="rounded border border-border-primary bg-bg-tertiary p-3">
-                  <p className="text-xs text-text-secondary">Active interview session will appear here.</p>
-                </div>
-              </div>
+              <LiveKitSession />
             </PanelContainer>
           }
           right={
