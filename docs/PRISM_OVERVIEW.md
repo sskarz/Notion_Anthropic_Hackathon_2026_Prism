@@ -106,7 +106,7 @@ prism/
 
 ## Environment Variables
 
-NOTION_TOKEN=              # Notion integration token
+NOTION_INTERNAL_INTEGRATION_SECRET=  # Notion internal integration secret (or NOTION_TOKEN for backward compatibility)
 LIVEKIT_API_KEY=           # LiveKit credentials
 LIVEKIT_API_SECRET=
 LIVEKIT_URL=

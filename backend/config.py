@@ -4,7 +4,15 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
-NOTION_TOKEN: str = os.environ["NOTION_TOKEN"]
+# Support both new and old env var names for backward compatibility
+NOTION_TOKEN: str = os.environ.get(
+    "NOTION_INTERNAL_INTEGRATION_SECRET"
+) or os.environ.get("NOTION_TOKEN", "")
+
+if not NOTION_TOKEN:
+    raise ValueError(
+        "NOTION_INTERNAL_INTEGRATION_SECRET or NOTION_TOKEN must be set"
+    )
 
 DATABASE_IDS = {
     "issues": "37a0541c-5a3b-4103-ac9c-2ab99ce66812",

@@ -1,5 +1,6 @@
 from typing import Any
 
+import httpx
 from notion_client import AsyncClient
 
 from config import NOTION_TOKEN, DATABASE_IDS
@@ -42,15 +43,53 @@ def _extract_url(props: dict[str, Any], key: str) -> str:
 async def _query_database(database_id: str) -> list[dict[str, Any]]:
     pages: list[dict[str, Any]] = []
     cursor = None
-    while True:
-        kwargs: dict[str, Any] = {"database_id": database_id}
-        if cursor:
-            kwargs["start_cursor"] = cursor
-        response = await _client.databases.query(**kwargs)
-        pages.extend(response["results"])
-        if not response.get("has_more"):
-            break
-        cursor = response.get("next_cursor")
+    
+    # Use httpx directly since the notion-client API structure varies
+    async with httpx.AsyncClient() as http_client:
+        while True:
+            # Build query body
+            body: dict[str, Any] = {}
+            if cursor:
+                body["start_cursor"] = cursor
+            
+            # Make the API call directly
+            resp = await http_client.post(
+                f"https://api.notion.com/v1/databases/{database_id}/query",
+                headers={
+                    "Authorization": f"Bearer {NOTION_TOKEN}",
+                    "Notion-Version": "2022-06-28",
+                    "Content-Type": "application/json",
+                },
+                json=body,
+            )
+            
+            # Provide helpful error messages
+            if resp.status_code == 404:
+                raise ValueError(
+                    f"Database {database_id} not found or integration doesn't have access. "
+                    f"Please ensure:\n"
+                    f"1. The database ID is correct\n"
+                    f"2. The integration is shared with the database in Notion\n"
+                    f"3. The integration has the correct permissions"
+                )
+            elif resp.status_code == 401:
+                raise ValueError(
+                    "Authentication failed. Please check your NOTION_INTERNAL_INTEGRATION_SECRET."
+                )
+            elif resp.status_code == 403:
+                raise ValueError(
+                    f"Access forbidden for database {database_id}. "
+                    f"The integration doesn't have permission to access this database."
+                )
+            
+            resp.raise_for_status()
+            response = resp.json()
+            
+            pages.extend(response["results"])
+            if not response.get("has_more"):
+                break
+            cursor = response.get("next_cursor")
+    
     return pages
 
 

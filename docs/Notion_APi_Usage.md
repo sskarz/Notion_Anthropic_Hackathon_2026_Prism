@@ -7,7 +7,7 @@ pip install notion-client
 
 from notion_client import AsyncClient
 
-notion = AsyncClient(auth=os.environ["NOTION_TOKEN"])
+notion = AsyncClient(auth=os.environ.get("NOTION_INTERNAL_INTEGRATION_SECRET") or os.environ["NOTION_TOKEN"])
 
 ## DATABASE IDS (copy-paste ready)
 
