@@ -4,13 +4,18 @@ import Prism from './components/Prism';
 import PanelContainer from './components/shared/PanelContainer';
 import IDELayout from './layouts/IDELayout';
 import HeroPage from './components/HeroPage';
+import SignUpForm from './components/SignUpForm';
 import LiveKitSession from './components/LiveKitSession';
 
 function App() {
-  const [view, setView] = useState<'hero' | 'ide'>('hero');
+  const [view, setView] = useState<'hero' | 'signup' | 'ide'>('hero');
 
   if (view === 'hero') {
-    return <HeroPage onStart={() => setView('ide')} />;
+    return <HeroPage onStart={() => setView('signup')} />;
+  }
+
+  if (view === 'signup') {
+    return <SignUpForm onComplete={() => setView('ide')} />;
   }
 
   return (

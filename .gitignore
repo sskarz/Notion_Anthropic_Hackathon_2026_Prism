@@ -187,3 +187,6 @@ dist/
 
 CLAUDE.md
 .claude/
+
+# Sign-up data
+backend/signups/
