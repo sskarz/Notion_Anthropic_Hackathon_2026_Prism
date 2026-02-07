@@ -81,6 +81,23 @@ export async function fetchAnalytics(projectId: string): Promise<AnalyticsData> 
   return mockAnalytics;
 }
 
+export interface TranscriptEntryPayload {
+  speaker: 'user' | 'agent';
+  text: string;
+  timestamp: number;
+}
+
+export async function analyzeTranscript(transcript: TranscriptEntryPayload[]): Promise<string> {
+  const resp = await fetch('/api/analyze-transcript', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transcript }),
+  });
+  if (!resp.ok) throw new Error('Failed to analyze transcript');
+  const data = await resp.json();
+  return data.analysis;
+}
+
 export interface SimulationResult {
   transcript: InterviewTranscript;
   quotes: QuoteEvidence[];

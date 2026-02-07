@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import anthropic
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -79,6 +80,75 @@ async def get_token(room: str = "prism-interview", identity: str = "user"):
     )
     jwt = token.to_jwt()
     return {"token": jwt, "url": os.getenv("LIVEKIT_URL")}
+
+
+class TranscriptEntry(BaseModel):
+    speaker: str
+    text: str
+    timestamp: float
+
+
+class AnalyzeRequest(BaseModel):
+    transcript: list[TranscriptEntry]
+
+
+ANALYSIS_PROMPT = """\
+You are a product research analyst. Analyze the following interview transcript between an interviewer (Prism AI agent) and a user.
+
+Produce a structured markdown report with these sections:
+
+## User Persona
+A brief description of who this user is based on what they shared — their role, goals, pain points, and context.
+
+## Product Issues
+A table of product issues or feedback themes identified in the interview, prioritized by severity:
+
+| Priority | Issue | Description | Evidence |
+|----------|-------|-------------|----------|
+| P0 | ... | ... | ... |
+| P1 | ... | ... | ... |
+| P2 | ... | ... | ... |
+
+Use P0 for critical/blocking issues, P1 for significant pain points, P2 for minor improvements or nice-to-haves.
+
+## Direct Quotes
+Extract 3-6 notable direct quotes from the user (not the interviewer). For each quote include:
+- The exact quote in quotation marks
+- A sentiment label (positive / negative / neutral / mixed)
+- Brief context for why this quote matters
+
+## Summary
+A 2-3 sentence executive summary of the most important findings from this interview.
+
+---
+
+Here is the transcript:
+
+{transcript}
+"""
+
+
+@app.post("/api/analyze-transcript")
+async def analyze_transcript(req: AnalyzeRequest):
+    lines = []
+    for entry in req.transcript:
+        speaker = "Interviewer (Prism)" if entry.speaker == "agent" else "User"
+        lines.append(f"{speaker}: {entry.text}")
+    transcript_text = "\n".join(lines)
+
+    client = anthropic.Anthropic()
+    message = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=2048,
+        messages=[
+            {
+                "role": "user",
+                "content": ANALYSIS_PROMPT.format(transcript=transcript_text),
+            }
+        ],
+    )
+    analysis = message.content[0].text
+    return {"analysis": analysis}
 
 
 if __name__ == "__main__":
