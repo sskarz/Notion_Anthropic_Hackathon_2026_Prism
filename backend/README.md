@@ -84,13 +84,17 @@ cd backend
 python token_server.py
 ```
 
-This starts a FastAPI server on `http://localhost:8080` with a single endpoint:
+This starts a FastAPI server on `http://localhost:8080` with the following endpoints:
 
 ```
-GET /api/token?room=<room-name>&identity=<user-name>
+GET  /api/token?room=<room-name>&identity=<user-name>
+POST /api/signup
+POST /api/analyze-transcript
 ```
 
-Returns `{ "token": "<jwt>", "url": "<livekit-url>" }`.
+- **`GET /api/token`** — Returns `{ "token": "<jwt>", "url": "<livekit-url>" }` for LiveKit room auth.
+- **`POST /api/signup`** — Saves participant sign-up info to `backend/signups/` as markdown files.
+- **`POST /api/analyze-transcript`** — Accepts a JSON body `{ "transcript": [{ "speaker": "user"|"agent", "text": "...", "timestamp": 0 }] }`, sends it to Claude Sonnet for analysis, and returns `{ "analysis": "<markdown>" }` with a structured report containing user persona, prioritized product issues (P0/P1/P2), direct quotes, and summary.
 
 ### 7. Test it
 
@@ -102,7 +106,8 @@ Alternatively, use the [LiveKit Agents Playground](https://agents-playground.liv
 
 ```
 backend/
-  token_server.py     # FastAPI token endpoint for frontend auth (port 8080)
+  token_server.py     # FastAPI server: token endpoint, signup, transcript analysis (port 8080)
+  signups/            # Saved participant sign-up markdown files (gitignored)
   voice_livekit/
     agent.py          # Agent definition, system prompt, pipeline wiring
     requirements.txt  # Python dependencies
