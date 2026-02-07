@@ -1,13 +1,26 @@
-import { useState } from 'react';
-import { BookOpen, MessageSquare, BarChart3, ScrollText } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import Prism from './components/Prism';
-import PanelContainer from './components/shared/PanelContainer';
 import IDELayout from './layouts/IDELayout';
 import HeroPage from './components/HeroPage';
-import LiveKitSession from './components/LiveKitSession';
+import { ResearchProvider } from './context/ResearchContext';
+import ContextPanel from './panels/ContextPanel';
+import InterviewPanel from './panels/InterviewPanel';
+import AnalysisPanel from './panels/AnalysisPanel';
+import ResearchLogPanel from './panels/ResearchLogPanel';
+import { simulateNewInterviewData } from './services/api';
+import { mockPersonas, mockQuotes, mockIssues } from './mocks/data';
 
 function App() {
   const [view, setView] = useState<'hero' | 'ide'>('hero');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSimulate = useCallback(() => {
+    const { personas, quotes, issues } = simulateNewInterviewData();
+    mockPersonas.push(...personas);
+    mockQuotes.push(...quotes);
+    mockIssues.push(...issues);
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   if (view === 'hero') {
     return <HeroPage onStart={() => setView('ide')} />;
@@ -27,40 +40,16 @@ function App() {
       <div className="fixed inset-0 z-0 bg-bg-primary/85" />
 
       <div className="relative z-10 h-full">
-        <IDELayout
-          left={
-            <PanelContainer title="Context" icon={BookOpen}>
-              <div className="space-y-3">
-                <div className="rounded border border-border-primary bg-bg-tertiary p-3">
-                  <p className="text-xs text-text-secondary">Research context and documents will appear here.</p>
-                </div>
-              </div>
-            </PanelContainer>
-          }
-          center={
-            <PanelContainer title="Interview" icon={MessageSquare} active>
-              <LiveKitSession />
-            </PanelContainer>
-          }
-          right={
-            <PanelContainer title="Analysis" icon={BarChart3}>
-              <div className="space-y-3">
-                <div className="rounded border border-border-primary bg-bg-tertiary p-3">
-                  <p className="text-xs text-text-secondary">Real-time analysis and insights will appear here.</p>
-                </div>
-              </div>
-            </PanelContainer>
-          }
-          bottom={
-            <PanelContainer title="Research Log" icon={ScrollText}>
-              <div className="space-y-2">
-                <div className="rounded border border-border-primary bg-bg-tertiary p-2">
-                  <p className="text-xs text-text-secondary">Research log entries will appear here.</p>
-                </div>
-              </div>
-            </PanelContainer>
-          }
-        />
+        <ResearchProvider>
+          <IDELayout
+            onLogoClick={() => setView('hero')}
+            onSimulate={handleSimulate}
+            left={<ContextPanel key={refreshKey} />}
+            center={<InterviewPanel key={refreshKey} />}
+            right={<AnalysisPanel key={refreshKey} />}
+            bottom={<ResearchLogPanel key={refreshKey} />}
+          />
+        </ResearchProvider>
       </div>
     </div>
   );

@@ -1,19 +1,11 @@
-export interface PricingTier {
-  name: string;
-  price: string;
-  features: string[];
-}
+export type UserSentiment = 'Positive' | 'Mixed' | 'Negative';
 
-export interface CompetitorEntry {
+export interface Competitor {
   id: string;
-  project_id: string;
-  name: string;
+  created_time: string;
+  competitor_name: string;
   website: string;
-  description: string;
-  key_features: string[];
-  pricing_tiers: PricingTier[];
-  user_sentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
-  strengths: string[];
-  weaknesses: string[];
-  updated_at: string;
+  key_features: string;
+  pricing: string;
+  user_sentiment: UserSentiment;
 }
