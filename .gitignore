@@ -190,3 +190,5 @@ CLAUDE.md
 
 # Sign-up data
 backend/signups/
+
+package-lock.jsonfrontend/package-lock.json
