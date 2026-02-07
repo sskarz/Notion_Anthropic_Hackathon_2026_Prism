@@ -71,19 +71,41 @@ This downloads the Silero VAD and turn detector ONNX models (~few MB).
 ### 5. Run the agent
 
 ```bash
+cd voice_livekit
 python agent.py dev
 ```
 
-### 6. Test it
+### 6. Run the token server
 
-Open the [LiveKit Agents Playground](https://agents-playground.livekit.io/), connect to your project, allow microphone access, and start talking. The agent will greet you and begin the interview.
+The token server generates LiveKit access tokens so the frontend can join rooms.
+
+```bash
+cd backend
+python token_server.py
+```
+
+This starts a FastAPI server on `http://localhost:8080` with a single endpoint:
+
+```
+GET /api/token?room=<room-name>&identity=<user-name>
+```
+
+Returns `{ "token": "<jwt>", "url": "<livekit-url>" }`.
+
+### 7. Test it
+
+Open the Prism frontend (`npm run dev` in `frontend/`), navigate to the IDE view, and click **Start Interview** in the center panel. The frontend connects to the LiveKit room and the agent joins automatically.
+
+Alternatively, use the [LiveKit Agents Playground](https://agents-playground.livekit.io/) to test the agent directly.
 
 ## File Structure
 
 ```
-voice_livekit/
-  agent.py          # Agent definition, system prompt, pipeline wiring (entire MVP)
-  requirements.txt  # Python dependencies
-  .env              # API keys (not committed)
-  .env.example      # Template for .env
+backend/
+  token_server.py     # FastAPI token endpoint for frontend auth (port 8080)
+  voice_livekit/
+    agent.py          # Agent definition, system prompt, pipeline wiring
+    requirements.txt  # Python dependencies
+    .env              # API keys (not committed)
+    .env.example      # Template for .env
 ```
