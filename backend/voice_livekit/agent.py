@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 
 from livekit import agents
-from livekit.agents import AgentServer, AgentSession, Agent
-from livekit.plugins import cartesia, anthropic, silero
+from livekit.agents import AgentServer, AgentSession, Agent, inference
+from livekit.plugins import cartesia, anthropic
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 load_dotenv()
@@ -39,7 +39,14 @@ server = AgentServer()
 @server.rtc_session()
 async def entrypoint(ctx: agents.JobContext):
     session = AgentSession(
-        stt=cartesia.STT(model="ink-whisper"),
+        stt=inference.STT(
+            model="cartesia/ink-whisper",
+            language="en",
+            extra_kwargs={
+                "min_volume": 0.1,
+                "max_silence_duration_secs": 1.5,
+            },
+        ),
         llm=anthropic.LLM(
             model="claude-sonnet-4-5-20250929",
             temperature=0.7,
@@ -48,7 +55,6 @@ async def entrypoint(ctx: agents.JobContext):
             model="sonic-2",
             voice="79a125e8-cd45-4c13-8a67-188112f4dd22",
         ),
-        vad=silero.VAD.load(),
         turn_detection=MultilingualModel(),
     )
 
