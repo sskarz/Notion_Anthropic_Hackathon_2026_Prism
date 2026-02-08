@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Issue } from '../types/issue.ts';
 import { fetchIssues } from '../services/api.ts';
 
@@ -8,12 +8,13 @@ export function useIssues() {
   const [data, setData] = useState<Issue[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const hasLoaded = useRef(false);
 
   const refresh = useCallback(() => {
-    setLoading(true);
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     fetchIssues()
-      .then(setData)
+      .then((result) => { setData(result); hasLoaded.current = true; })
       .catch(setError)
       .finally(() => setLoading(false));
   }, []);

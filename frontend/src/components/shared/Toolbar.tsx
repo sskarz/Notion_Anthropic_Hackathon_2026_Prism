@@ -20,7 +20,7 @@ export default function Toolbar({ onLogoClick, connected, interviewCount }: Tool
 
       <div className="flex-1 text-center">
         <span className="text-sm font-medium text-text-secondary">
-          Onboarding Experience Research
+          Notion PM User Research - Custom Agents
         </span>
       </div>
 
