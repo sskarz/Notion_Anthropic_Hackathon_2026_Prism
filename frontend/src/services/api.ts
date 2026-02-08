@@ -12,20 +12,30 @@ interface ProjectContext {
   competitors: Competitor[];
 }
 
+let _inflight: Promise<ProjectContext> | null = null;
+
 export async function fetchProjectContext(): Promise<ProjectContext> {
+  if (_inflight) {
+    console.log('[api] fetchProjectContext DEDUP (reusing in-flight request)');
+    return _inflight;
+  }
   const t0 = performance.now();
   console.log('[api] fetchProjectContext START');
-  const res = await fetch(`${API_BASE_URL}/api/project/context`);
-  const elapsed = (performance.now() - t0).toFixed(0);
-  if (!res.ok) {
-    console.error(`[api] fetchProjectContext FAILED status=${res.status} (${elapsed}ms)`);
-    throw new Error(`Failed to fetch project context: ${res.status}`);
-  }
-  const data = await res.json();
-  console.log(
-    `[api] fetchProjectContext OK (${elapsed}ms) issues=${data.issues?.length} personas=${data.personas?.length} quotes=${data.quotes?.length} competitors=${data.competitors?.length}`,
-  );
-  return data;
+  _inflight = fetch(`${API_BASE_URL}/api/project/context`)
+    .then(async (res) => {
+      const elapsed = (performance.now() - t0).toFixed(0);
+      if (!res.ok) {
+        console.error(`[api] fetchProjectContext FAILED status=${res.status} (${elapsed}ms)`);
+        throw new Error(`Failed to fetch project context: ${res.status}`);
+      }
+      const data = await res.json();
+      console.log(
+        `[api] fetchProjectContext OK (${elapsed}ms) issues=${data.issues?.length} personas=${data.personas?.length} quotes=${data.quotes?.length} competitors=${data.competitors?.length}`,
+      );
+      return data;
+    })
+    .finally(() => { _inflight = null; });
+  return _inflight;
 }
 
 export async function fetchIssues(): Promise<Issue[]> {

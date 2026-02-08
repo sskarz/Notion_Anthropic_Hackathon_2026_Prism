@@ -1,5 +1,9 @@
 # Prism -- PM Research Intelligence IDE
 
+<p align="center">
+  <img src="frontend/public/prism-logo.png" alt="Prism Logo" width="200" />
+</p>
+
 **Hackathon:** Cartesia x Anthropic Voice Agents | Feb 7-8, 2026
 
 Prism is an AI-powered research IDE that conducts autonomous customer interviews via voice and surfaces structured product intelligence -- no PM needs to be on the call.
