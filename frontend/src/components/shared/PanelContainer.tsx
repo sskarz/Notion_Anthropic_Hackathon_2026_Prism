@@ -8,6 +8,7 @@ interface PanelContainerProps {
   active?: boolean;
   collapsible?: boolean;
   onCollapse?: () => void;
+  headerExtra?: ReactNode;
   children: ReactNode;
 }
 
@@ -17,6 +18,7 @@ export default function PanelContainer({
   active = false,
   collapsible = false,
   onCollapse,
+  headerExtra,
   children,
 }: PanelContainerProps) {
   return (
@@ -30,6 +32,7 @@ export default function PanelContainer({
       <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border-primary px-3">
         <Icon size={14} className="text-text-secondary" />
         <span className="text-xs font-medium text-text-secondary">{title}</span>
+        {headerExtra}
         {collapsible && (
           <button
             onClick={onCollapse}

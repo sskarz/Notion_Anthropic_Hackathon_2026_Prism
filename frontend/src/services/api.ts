@@ -13,9 +13,19 @@ interface ProjectContext {
 }
 
 export async function fetchProjectContext(): Promise<ProjectContext> {
+  const t0 = performance.now();
+  console.log('[api] fetchProjectContext START');
   const res = await fetch(`${API_BASE_URL}/api/project/context`);
-  if (!res.ok) throw new Error(`Failed to fetch project context: ${res.status}`);
-  return res.json();
+  const elapsed = (performance.now() - t0).toFixed(0);
+  if (!res.ok) {
+    console.error(`[api] fetchProjectContext FAILED status=${res.status} (${elapsed}ms)`);
+    throw new Error(`Failed to fetch project context: ${res.status}`);
+  }
+  const data = await res.json();
+  console.log(
+    `[api] fetchProjectContext OK (${elapsed}ms) issues=${data.issues?.length} personas=${data.personas?.length} quotes=${data.quotes?.length} competitors=${data.competitors?.length}`,
+  );
+  return data;
 }
 
 export async function fetchIssues(): Promise<Issue[]> {
@@ -39,9 +49,17 @@ export async function fetchCompetitors(): Promise<Competitor[]> {
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsData> {
+  const t0 = performance.now();
+  console.log('[api] fetchAnalytics START');
   const res = await fetch(`${API_BASE_URL}/api/project/analytics`);
-  if (!res.ok) throw new Error(`Failed to fetch analytics: ${res.status}`);
-  return res.json();
+  const elapsed = (performance.now() - t0).toFixed(0);
+  if (!res.ok) {
+    console.error(`[api] fetchAnalytics FAILED status=${res.status} (${elapsed}ms)`);
+    throw new Error(`Failed to fetch analytics: ${res.status}`);
+  }
+  const data = await res.json();
+  console.log(`[api] fetchAnalytics OK (${elapsed}ms) total_issues=${data.total_issues}`);
+  return data;
 }
 
 export interface TranscriptEntryPayload {

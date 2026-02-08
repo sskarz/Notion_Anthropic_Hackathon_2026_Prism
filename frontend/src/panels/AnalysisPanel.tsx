@@ -1,10 +1,13 @@
-import { BarChart3, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { ListFilter, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useIssues } from '../hooks/useIssues';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useResearch } from '../context/ResearchContext';
 import PanelContainer from '../components/shared/PanelContainer';
 import type { Severity, IssueType } from '../types/issue';
+
+type SortMode = 'severity' | 'chronological';
 
 const SEVERITY_ORDER: Severity[] = ['Critical', 'High', 'Medium', 'Low'];
 
@@ -30,12 +33,16 @@ const TYPE_COLOR: Record<IssueType, string> = {
 };
 
 export default function AnalysisPanel() {
+  const [sortMode, setSortMode] = useState<SortMode>('severity');
   const { data: issues, loading: iLoading } = useIssues();
   const { data: analytics, loading: aLoading } = useAnalytics();
   const { selectedIssueId, selectIssue, selectedPersonaId } = useResearch();
 
   const sorted = (issues ?? []).slice().sort((a, b) => {
-    return SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity);
+    if (sortMode === 'severity') {
+      return SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity);
+    }
+    return new Date(b.created_time).getTime() - new Date(a.created_time).getTime();
   });
 
   const totalSeverity = analytics
@@ -43,7 +50,28 @@ export default function AnalysisPanel() {
     : 0;
 
   return (
-    <PanelContainer title="Analysis" icon={BarChart3}>
+    <PanelContainer
+      title="All Issues"
+      icon={ListFilter}
+      headerExtra={
+        <div className="ml-auto flex items-center gap-0.5 rounded bg-bg-tertiary p-0.5">
+          {(['severity', 'chronological'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSortMode(mode)}
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[10px] capitalize transition-colors',
+                sortMode === mode
+                  ? 'bg-bg-hover text-text-primary'
+                  : 'text-text-tertiary hover:text-text-secondary',
+              )}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      }
+    >
       <div className="flex h-full flex-col">
         <div className="flex-1 min-h-0 space-y-2 overflow-y-auto">
           {iLoading && <p className="text-xs text-text-tertiary">Loading...</p>}
