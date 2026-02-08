@@ -114,7 +114,7 @@ async def entrypoint(ctx: agents.JobContext):
         if p.metadata:
             try:
                 user_meta = json.loads(p.metadata)
-                role = user_meta.get("role", "pm")
+                role = user_meta.get("participant_type", "pm")
             except json.JSONDecodeError:
                 pass
             break

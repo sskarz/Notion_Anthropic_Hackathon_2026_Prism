@@ -4,6 +4,7 @@ import Prism from './Prism';
 export interface UserFormData {
   name: string;
   company: string;
+  role: string;
   problem_description: string;
   steps_to_reproduce: string;
   urgency: 'high' | 'medium' | 'low';
@@ -17,6 +18,7 @@ export default function UserForm({ onComplete }: UserFormProps) {
   const [form, setForm] = useState<UserFormData>({
     name: '',
     company: '',
+    role: '',
     problem_description: '',
     steps_to_reproduce: '',
     urgency: 'medium',
@@ -106,6 +108,27 @@ export default function UserForm({ onComplete }: UserFormProps) {
                 placeholder="Acme Corp"
                 className={inputClass}
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">Role</label>
+              <select
+                name="role"
+                required
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                className={inputClass}
+              >
+                <option value="" disabled>Select your role...</option>
+                <option value="engineer">Engineer</option>
+                <option value="product_manager">Product Manager</option>
+                <option value="designer">Designer</option>
+                <option value="customer">Customer</option>
+                <option value="sales">Sales</option>
+                <option value="support">Support</option>
+                <option value="executive">Executive</option>
+                <option value="other">Other</option>
+              </select>
             </div>
 
             <div>

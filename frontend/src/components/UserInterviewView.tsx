@@ -20,7 +20,7 @@ export default function UserInterviewView({ userContext }: UserInterviewViewProp
     setInterviewDone(true);
   }, [userContext]);
 
-  const metadata = JSON.stringify({ role: 'user', ...userContext });
+  const metadata = JSON.stringify({ participant_type: 'user', ...userContext });
 
   return (
     <div className="relative min-h-screen w-screen overflow-x-hidden">
