@@ -8,6 +8,7 @@ from models.persona import PersonaCreate
 from models.quote import QuoteCreate
 from models.issue import IssueCreate
 from models.competitor import CompetitorCreate
+from models.extraction_summary import ExtractionSummaryCreate
 from services.notion_mapper import (
     map_title,
     map_rich_text,
@@ -64,6 +65,10 @@ async def create_issue(i: IssueCreate) -> str:
         "Issue Details": map_rich_text(i.issue_details),
         "Severity": map_select(i.severity),
     }
+    if i.time:
+        props["Time"] = map_rich_text(i.time)
+    if i.graph_data:
+        props["Graph Data"] = map_rich_text(i.graph_data)
     if i.related_persona_id:
         props["Related Persona"] = map_relation([i.related_persona_id])
     if i.related_quote_ids:
@@ -80,3 +85,36 @@ async def create_competitor(c: CompetitorCreate) -> str:
         "User Sentiment": map_select(c.user_sentiment),
     }
     return await _create_page(DATABASE_IDS["competitors"], props)
+
+
+async def create_extraction_summary(e: ExtractionSummaryCreate) -> str:
+    from datetime import datetime, timezone
+
+    title = f"Interview {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}"
+
+    # Notion rich_text has a 2000 char limit per block; chunk if needed
+    data_str = e.extraction_data
+    if len(data_str) <= 2000:
+        data_prop = map_rich_text(data_str)
+    else:
+        chunks = [data_str[i : i + 2000] for i in range(0, len(data_str), 2000)]
+        data_prop = {
+            "rich_text": [{"text": {"content": chunk}} for chunk in chunks]
+        }
+
+    props: dict[str, Any] = {
+        "Extraction Title": map_title(title),
+        "Extraction Data": data_prop,
+        "Status": map_select("Pending"),
+    }
+    if e.interview_context:
+        ctx_str = e.interview_context
+        if len(ctx_str) <= 2000:
+            props["Interview Context"] = map_rich_text(ctx_str)
+        else:
+            ctx_chunks = [ctx_str[i : i + 2000] for i in range(0, len(ctx_str), 2000)]
+            props["Interview Context"] = {
+                "rich_text": [{"text": {"content": chunk}} for chunk in ctx_chunks]
+            }
+
+    return await _create_page(DATABASE_IDS["extractions"], props)

@@ -14,4 +14,5 @@ export interface Issue {
   engineer_matching: string;
   graph_type: GraphType | null;
   exa_trigger: boolean;
+  graph_data: string;
 }

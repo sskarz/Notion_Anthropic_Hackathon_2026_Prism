@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import CORS_ORIGINS
 from routes.extraction import router as extraction_router
 from routes.project import router as project_router
+from routes.exa import router as exa_router
 
 app = FastAPI(title="Prism API")
 
@@ -16,6 +17,7 @@ app.add_middleware(
 
 app.include_router(extraction_router, prefix="/api")
 app.include_router(project_router, prefix="/api")
+app.include_router(exa_router, prefix="/api")
 
 
 @app.get("/health")

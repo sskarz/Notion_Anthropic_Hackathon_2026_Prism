@@ -1,5 +1,6 @@
 """Minimal token server for LiveKit frontend connection."""
 
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -12,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from livekit import api
 from pydantic import BaseModel
 
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 load_dotenv(os.path.join(os.path.dirname(__file__), "voice_livekit", ".env"))
 
 SIGNUPS_DIR = Path(__file__).parent / "signups"
@@ -137,6 +139,53 @@ Here is the transcript:
 {transcript}
 """
 
+STRUCTURED_EXTRACTION_PROMPT = """\
+You are a product research data extractor. Given the following interview transcript, extract structured data as JSON.
+
+Output ONLY valid JSON matching this exact schema (no markdown fencing, no commentary):
+
+{{
+  "personas": [
+    {{
+      "persona_type": "string (e.g. 'Senior PM at SaaS Startup')",
+      "primary_use_case": "string",
+      "communication_style": "Analytical" | "Narrative" | "Terse" | "Verbose",
+      "goals": "string",
+      "constraints": "string"
+    }}
+  ],
+  "quotes": [
+    {{
+      "quote_text": "string (exact quote from user)",
+      "speaker": "string (name and role if available)",
+      "sentiment": "Positive" | "Negative" | "Neutral" | "Frustrated",
+      "quote_type": "Pain Point" | "Insight" | "Feature Request" | "Praise",
+      "temp_persona_index": 0
+    }}
+  ],
+  "issues": [
+    {{
+      "issue_title": "string",
+      "issue_type": "Pain Point" | "Feature Request" | "Workflow Gap" | "Unmet Need",
+      "issue_details": "string",
+      "severity": "Critical" | "High" | "Medium" | "Low",
+      "temp_persona_index": 0,
+      "temp_quote_indices": [0, 1]
+    }}
+  ]
+}}
+
+Rules:
+- temp_persona_index references the index in the personas array (0-based)
+- temp_quote_indices references indices in the quotes array (0-based)
+- Extract 1-3 personas, 3-6 quotes, and 2-5 issues
+- communication_style MUST be exactly one of: Analytical, Narrative, Terse, Verbose
+
+Transcript:
+
+{transcript}
+"""
+
 
 @app.post("/api/analyze-transcript")
 async def analyze_transcript(req: AnalyzeRequest):
@@ -147,7 +196,9 @@ async def analyze_transcript(req: AnalyzeRequest):
     transcript_text = "\n".join(lines)
 
     client = anthropic.Anthropic()
-    message = client.messages.create(
+
+    # Two Claude calls: markdown analysis + structured JSON extraction
+    markdown_msg = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=2048,
         messages=[
@@ -157,7 +208,35 @@ async def analyze_transcript(req: AnalyzeRequest):
             }
         ],
     )
-    analysis = message.content[0].text
+    analysis = markdown_msg.content[0].text
+
+    extraction_msg = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "user",
+                "content": STRUCTURED_EXTRACTION_PROMPT.format(
+                    transcript=transcript_text
+                ),
+            }
+        ],
+    )
+    extraction_json_str = extraction_msg.content[0].text
+
+    # Validate it parses as JSON
+    json.loads(extraction_json_str)
+
+    # Write to Extractions DB
+    from models.extraction_summary import ExtractionSummaryCreate
+    from services.notion_writer import create_extraction_summary
+
+    context_str = json.dumps(req.user_context) if req.user_context else ""
+    summary = ExtractionSummaryCreate(
+        extraction_data=extraction_json_str,
+        interview_context=context_str,
+    )
+    extraction_id = await create_extraction_summary(summary)
 
     if req.user_context is not None:
         analyses_store.append(
@@ -168,7 +247,7 @@ async def analyze_transcript(req: AnalyzeRequest):
             }
         )
 
-    return {"analysis": analysis}
+    return {"analysis": analysis, "extraction_id": extraction_id}
 
 
 @app.get("/api/analyses")

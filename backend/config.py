@@ -19,6 +19,7 @@ DATABASE_IDS = {
     "personas": "8ae9dd9c-b488-4253-a8e2-1c49a14329bf",
     "quotes": "036ee354-4005-4ccd-ad83-3b9a035eaa42",
     "competitors": "38e7bdee-9467-4370-91b9-cbf800fb9bfe",
+    "extractions": "30177641d6c88068968ce6e77f06bb84",
 }
 
 CORS_ORIGINS = ["http://localhost:5173"]

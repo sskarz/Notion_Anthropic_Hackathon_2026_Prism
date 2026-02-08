@@ -151,11 +151,13 @@ async def get_all_issues() -> list[Issue]:
                 issue_type=_extract_select(props, "Issue Type") or "Pain Point",
                 issue_details=_extract_rich_text(props, "Issue Details"),
                 severity=_extract_select(props, "Severity") or "Medium",
+                time=_extract_rich_text(props, "Time"),
                 related_persona_id=persona_ids[0] if persona_ids else None,
                 related_quote_ids=quote_ids,
                 engineer_matching=_extract_rich_text(props, "Engineer Matching"),
                 graph_type=_extract_select(props, "Graph Type"),
                 exa_trigger=_extract_checkbox(props, "Exa Trigger"),
+                graph_data=_extract_rich_text(props, "Graph Data"),
             )
         )
     return result

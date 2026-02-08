@@ -635,6 +635,14 @@ def build_competitor_object_report(output: Dict) -> Dict:
     }
 
 
+def run_competitor_research(
+    company_context: str, customer_issue: str, num_results: int = 5
+) -> Dict:
+    plan = build_plan(company_context, customer_issue)
+    output = run_exa(plan, num_results=num_results)
+    return build_competitor_object_report(output)
+
+
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
     load_env_file(Path.cwd() / ".env")

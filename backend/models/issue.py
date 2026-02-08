@@ -13,6 +13,8 @@ class IssueCreate(BaseModel):
     issue_type: IssueType
     issue_details: str
     severity: Severity
+    time: str = ""
+    graph_data: str = ""
     related_persona_id: str | None = None
     related_quote_ids: list[str] = []
 
@@ -23,3 +25,4 @@ class Issue(IssueCreate):
     engineer_matching: str = ""
     graph_type: GraphType | None = None
     exa_trigger: bool = False
+    graph_data: str = ""

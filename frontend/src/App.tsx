@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { BookOpen, MessageSquare, BarChart3, ScrollText } from 'lucide-react';
 import Prism from './components/Prism';
 import PanelContainer from './components/shared/PanelContainer';
@@ -8,7 +8,11 @@ import UserForm from './components/UserForm';
 import UserInterviewView from './components/UserInterviewView';
 import AnalysisPanel from './components/AnalysisPanel';
 import { fetchAnalyses } from './services/api';
+import type { AnalysisEntry } from './services/api';
 import type { UserFormData } from './components/UserForm';
+import { useIssues } from './hooks/useIssues';
+import { useCompetitors } from './hooks/useCompetitors';
+import { useExaTrigger } from './hooks/useExaTrigger';
 
 type View = 'hero' | 'user-form' | 'user-interview' | 'ide';
 
@@ -22,7 +26,24 @@ function App() {
   const [userFormData, setUserFormData] = useState<UserFormData | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [latestUserContext, setLatestUserContext] = useState<AnalysisEntry['user_context'] | null>(null);
   const lastSeenCount = useRef(0);
+
+  const { data: issues } = useIssues();
+  const { refresh: refreshCompetitors } = useCompetitors();
+
+  const companyContext = useMemo(() => {
+    if (!latestUserContext) return '';
+    return `${latestUserContext.company} -- ${latestUserContext.problem_description}`;
+  }, [latestUserContext]);
+
+  const stableRefreshCompetitors = useCallback(refreshCompetitors, [refreshCompetitors]);
+
+  useExaTrigger({
+    issues,
+    companyContext,
+    onComplete: stableRefreshCompetitors,
+  });
 
   // Poll for new analyses when in IDE view
   useEffect(() => {
@@ -38,6 +59,10 @@ function App() {
           lastSeenCount.current = entries.length;
           initialized = true;
           return;
+        }
+        if (entries.length > 0) {
+          const latest = entries[entries.length - 1];
+          setLatestUserContext(latest.user_context);
         }
         if (entries.length > lastSeenCount.current) {
           const latest = entries[entries.length - 1];
