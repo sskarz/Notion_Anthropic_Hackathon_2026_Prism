@@ -91,6 +91,7 @@ COMPETITORS: list[CompetitorCreate] = [
 PERSONAS: list[PersonaCreate] = [
     PersonaCreate(
         persona_type="Enterprise Knowledge Manager at Fortune 500",
+        speaker_name="Rachel Torres",
         primary_use_case="Auto-triage support tickets and surface wiki answers from internal knowledge bases using Notion Custom Agents",
         communication_style="Analytical",
         goals="Reduce average ticket resolution time by 40%; decrease L1 support escalations; build self-serve knowledge retrieval for 10,000+ employees",
@@ -98,6 +99,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Startup Ops Lead at Series A SaaS",
+        speaker_name="Marcus Chen",
         primary_use_case="Automate standups and sprint retrospectives from Notion databases",
         communication_style="Terse",
         goals="Eliminate 5 hrs/week of manual standup collection; auto-generate retro summaries; keep team aligned without more meetings",
@@ -105,6 +107,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Marketing Director at Mid-Market B2B",
+        speaker_name="Aisha Patel",
         primary_use_case="Content calendar workflows and auto-drafted creative briefs powered by Notion Custom Agents",
         communication_style="Narrative",
         goals="Scale content output 3x without hiring; maintain brand voice consistency across channels; reduce brief-to-draft turnaround from 5 days to 1",
@@ -112,6 +115,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Engineering Team Lead at Platform Company",
+        speaker_name="David Kim",
         primary_use_case="RFC review automation and architecture decision record tracking with Custom Agents",
         communication_style="Terse",
         goals="Ensure all RFCs get reviewed within 48 hours; auto-tag relevant reviewers; maintain a searchable ADR repository with agent-generated summaries",
@@ -119,6 +123,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Customer Success Director at Enterprise SaaS",
+        speaker_name="Jennifer Walsh",
         primary_use_case="Client onboarding playbooks and automated health score reports via Notion Custom Agents",
         communication_style="Verbose",
         goals="Standardize onboarding across 200+ enterprise accounts; reduce time-to-value from 90 to 45 days; generate weekly health score reports automatically; proactively flag at-risk accounts",
@@ -126,6 +131,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Product Designer at Design Agency",
+        speaker_name="Liam Foster",
         primary_use_case="Design system documentation agent and component audit automation",
         communication_style="Analytical",
         goals="Keep design system docs always in sync with Figma; auto-audit component usage across projects; reduce design debt review time by 60%",
@@ -133,6 +139,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="HR Operations Manager at Remote-First Company",
+        speaker_name="Priya Sharma",
         primary_use_case="Employee handbook Q&A agent and policy change tracking with Notion Custom Agents",
         communication_style="Narrative",
         goals="Provide instant answers to policy questions across 5 time zones; auto-notify teams when policies update; reduce HR ticket volume by 50%",
@@ -140,6 +147,7 @@ PERSONAS: list[PersonaCreate] = [
     ),
     PersonaCreate(
         persona_type="Agency Project Manager at Digital Consultancy",
+        speaker_name="Tom Bradley",
         primary_use_case="Client deliverable tracking and SOW compliance checking using Custom Agents",
         communication_style="Analytical",
         goals="Auto-track deliverable status against SOW milestones; flag scope creep early; generate weekly client status reports from Notion project databases",

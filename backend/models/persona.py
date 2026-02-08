@@ -12,8 +12,10 @@ class PersonaCreate(BaseModel):
     communication_style: CommunicationStyle
     goals: str
     constraints: str
+    speaker_name: str = ""
 
 
 class Persona(PersonaCreate):
     id: str
     created_time: str
+    persona_summary: str = ""

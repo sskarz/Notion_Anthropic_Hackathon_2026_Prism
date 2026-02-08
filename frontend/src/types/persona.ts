@@ -8,4 +8,6 @@ export interface Persona {
   communication_style: CommunicationStyle;
   goals: string;
   constraints: string;
+  speaker_name: string;
+  persona_summary: string;
 }

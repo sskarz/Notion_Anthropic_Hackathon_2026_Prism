@@ -107,6 +107,8 @@ async def get_all_personas() -> list[Persona]:
                 communication_style=_extract_select(props, "Communication Style") or "Analytical",
                 goals=_extract_rich_text(props, "Goals"),
                 constraints=_extract_rich_text(props, "Constraints"),
+                speaker_name=_extract_rich_text(props, "Speaker Name"),
+                persona_summary=_extract_rich_text(props, "Persona Summary"),
             )
         )
     return result
