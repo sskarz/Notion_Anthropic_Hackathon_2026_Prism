@@ -1,21 +1,14 @@
-export type QuoteSourceType =
-  | 'Interview'
-  | 'G2 Review'
-  | 'Capterra Review'
-  | 'Reddit'
-  | 'Product Hunt';
+export type Sentiment = 'Positive' | 'Negative' | 'Neutral' | 'Frustrated';
+export type QuoteType = 'Pain Point' | 'Insight' | 'Feature Request' | 'Praise';
 
-export type QuoteSentiment = 'positive' | 'negative' | 'neutral' | 'mixed';
-
-export interface QuoteEvidence {
+export interface Quote {
   id: string;
-  project_id: string;
-  text: string;
-  source_type: QuoteSourceType;
-  source_id: string;
-  speaker_name: string;
-  speaker_role: string;
-  sentiment: QuoteSentiment;
-  theme_ids: string[];
-  created_at: string;
+  created_time: string;
+  quote_text: string;
+  speaker: string;
+  sentiment: Sentiment;
+  quote_type: QuoteType;
+  related_persona_id: string | null;
+  related_issue_id: string | null;
+  competitor_mentioned_id: string | null;
 }

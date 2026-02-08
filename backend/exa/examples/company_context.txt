@@ -1,0 +1,2 @@
+Notion is an all-in-one workspace where you can write notes, build docs and wikis, manage projects with tasks and boards, and organize knowledge in databases—so teams (or just you) can plan, track, and collaborate in one place.
+Competitors are Jira, Asana. 

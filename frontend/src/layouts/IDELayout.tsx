@@ -8,6 +8,8 @@ interface IDELayoutProps {
   center?: ReactNode;
   right?: ReactNode;
   bottom?: ReactNode;
+  onLogoClick?: () => void;
+  onSimulate?: () => void;
 }
 
 function ResizeHandle({ orientation }: { orientation: 'horizontal' | 'vertical' }) {
@@ -35,10 +37,10 @@ function Placeholder({ label }: { label: string }) {
   );
 }
 
-export default function IDELayout({ left, center, right, bottom }: IDELayoutProps) {
+export default function IDELayout({ left, center, right, bottom, onLogoClick, onSimulate }: IDELayoutProps) {
   return (
     <div className="flex h-screen flex-col">
-      <Toolbar />
+      <Toolbar onLogoClick={onLogoClick} onSimulate={onSimulate} />
       <div className="flex-1 overflow-hidden">
         <Group orientation="vertical">
           <Panel>

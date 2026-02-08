@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { InsightTheme } from '../types/insight.ts';
-import { fetchInsights } from '../services/api.ts';
+import type { Issue } from '../types/issue.ts';
+import { fetchIssues } from '../services/api.ts';
 
-export function useInsights(projectId: string) {
-  const [data, setData] = useState<InsightTheme[] | null>(null);
+export function useIssues() {
+  const [data, setData] = useState<Issue[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchInsights(projectId)
+    fetchIssues()
       .then(setData)
       .catch(setError)
       .finally(() => setLoading(false));
-  }, [projectId]);
+  }, []);
 
   useEffect(() => {
     refresh();

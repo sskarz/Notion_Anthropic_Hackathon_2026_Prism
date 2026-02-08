@@ -1,12 +1,9 @@
 export interface AnalyticsData {
-  total_interviews: number;
+  total_issues: number;
   total_quotes: number;
-  total_insights: number;
-  total_action_items: number;
-  avg_coverage_score: number;
-  avg_confidence_score: number;
-  issues_by_priority: Record<string, number>;
-  sentiment_breakdown: Record<string, number>;
-  category_breakdown: Record<string, number>;
-  source_type_breakdown: Record<string, number>;
+  total_personas: number;
+  total_competitors: number;
+  issues_by_severity: Record<string, number>;
+  issues_by_type: Record<string, number>;
+  quotes_by_sentiment: Record<string, number>;
 }

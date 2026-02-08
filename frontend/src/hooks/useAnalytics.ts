@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AnalyticsData } from '../types/analytics.ts';
 import { fetchAnalytics } from '../services/api.ts';
 
-export function useAnalytics(projectId: string) {
+export function useAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -10,11 +10,11 @@ export function useAnalytics(projectId: string) {
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchAnalytics(projectId)
+    fetchAnalytics()
       .then(setData)
       .catch(setError)
       .finally(() => setLoading(false));
-  }, [projectId]);
+  }, []);
 
   useEffect(() => {
     refresh();

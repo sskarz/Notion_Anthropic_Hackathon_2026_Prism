@@ -2,38 +2,26 @@
 
 Base URL: `http://localhost:8000`
 
-All endpoints return JSON. The frontend is **read-only** — all writes come from the voice agent pipeline.
-
 ## Endpoints
 
-### GET `/project/{project_id}/context`
-Returns the full `ResearchProject` object.
+### POST `/api/extraction`
+Receives Claude Agent extraction output. Writes personas, quotes, issues to Notion.
+Request body: `ExtractionPayload` (see backend/models/extraction.py).
+Returns: `{personas_created, quotes_created, issues_created}`
 
-### GET `/project/{project_id}/transcripts`
-Returns `InterviewTranscript[]` for the project.
+### GET `/api/project/context`
+Returns all data from 4 Notion databases: `{issues: Issue[], personas: Persona[], quotes: Quote[], competitors: Competitor[]}`
 
-### GET `/project/{project_id}/quotes`
-Returns `QuoteEvidence[]` for the project.
+### GET `/api/project/analytics`
+Returns aggregated stats: `{total_issues, total_quotes, total_personas, total_competitors, issues_by_severity, issues_by_type, quotes_by_sentiment}`
 
-### GET `/project/{project_id}/market-intel`
-Returns `MarketIntelligence[]` for the project.
-
-### GET `/project/{project_id}/competitors`
-Returns `CompetitorEntry[]` for the project.
-
-### GET `/project/{project_id}/insights`
-Returns `InsightTheme[]` for the project.
-
-### GET `/project/{project_id}/actions`
-Returns `ActionItem[]` for the project.
-
-### GET `/project/{project_id}/analytics`
-Returns `AnalyticsData` with aggregated stats for the project.
+### GET `/health`
+Returns `{"status": "ok"}`
 
 ## Notes
 
 - All property names use **snake_case** (matching Pydantic models).
 - Timestamps are ISO 8601 strings.
-- IDs follow the pattern: `proj-*`, `tx-*`, `q-*`, `mi-*`, `comp-*`, `ins-*`, `act-*`.
-- Confidence/coverage scores are floats 0.0 - 1.0.
-- Relevance scores are floats 0.0 - 1.0.
+- IDs are Notion page UUIDs.
+- No project_id scoping -- all data is returned from the workspace databases.
+- Frontend toggles mock/real via `VITE_USE_MOCK` env var (default: mock).
