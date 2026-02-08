@@ -5,7 +5,7 @@ import HeroPage from './components/HeroPage';
 import UserForm from './components/UserForm';
 import UserInterviewView from './components/UserInterviewView';
 import ContextPanel from './panels/ContextPanel';
-import InterviewPanel from './panels/InterviewPanel';
+import InsightsPanel from './panels/InsightsPanel';
 import AnalysisPanel from './panels/AnalysisPanel';
 import ResearchLogPanel from './panels/ResearchLogPanel';
 import { ResearchProvider } from './context/ResearchContext';
@@ -113,7 +113,7 @@ function IDEView() {
             lastSync={lastSync}
             interviewCount={interviewCount}
             left={<ContextPanel />}
-            center={<InterviewPanel />}
+            center={<InsightsPanel />}
             right={<AnalysisPanel />}
             bottom={<ResearchLogPanel />}
           />

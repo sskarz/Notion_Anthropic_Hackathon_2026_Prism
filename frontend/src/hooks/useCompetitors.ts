@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Competitor } from '../types/competitor.ts';
 import { fetchCompetitors } from '../services/api.ts';
 
@@ -8,12 +8,13 @@ export function useCompetitors() {
   const [data, setData] = useState<Competitor[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const hasLoaded = useRef(false);
 
   const refresh = useCallback(() => {
-    setLoading(true);
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     fetchCompetitors()
-      .then(setData)
+      .then((result) => { setData(result); hasLoaded.current = true; })
       .catch(setError)
       .finally(() => setLoading(false));
   }, []);

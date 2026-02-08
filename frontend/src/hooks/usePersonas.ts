@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Persona } from '../types/persona.ts';
 import { fetchPersonas } from '../services/api.ts';
 
@@ -8,12 +8,13 @@ export function usePersonas() {
   const [data, setData] = useState<Persona[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const hasLoaded = useRef(false);
 
   const refresh = useCallback(() => {
-    setLoading(true);
+    if (!hasLoaded.current) setLoading(true);
     setError(null);
     fetchPersonas()
-      .then(setData)
+      .then((result) => { setData(result); hasLoaded.current = true; })
       .catch(setError)
       .finally(() => setLoading(false));
   }, []);

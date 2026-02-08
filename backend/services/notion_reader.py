@@ -41,9 +41,12 @@ def _extract_url(props: dict[str, Any], key: str) -> str:
 
 
 async def _query_database(database_id: str) -> list[dict[str, Any]]:
+    import asyncio
+
     pages: list[dict[str, Any]] = []
     cursor = None
-    
+    retries = 0
+
     # Use httpx directly since the notion-client API structure varies
     async with httpx.AsyncClient() as http_client:
         while True:
@@ -51,7 +54,7 @@ async def _query_database(database_id: str) -> list[dict[str, Any]]:
             body: dict[str, Any] = {}
             if cursor:
                 body["start_cursor"] = cursor
-            
+
             # Make the API call directly
             resp = await http_client.post(
                 f"https://api.notion.com/v1/databases/{database_id}/query",
@@ -62,7 +65,15 @@ async def _query_database(database_id: str) -> list[dict[str, Any]]:
                 },
                 json=body,
             )
-            
+
+            # Retry on rate limit with backoff (max 3 attempts)
+            if resp.status_code == 429 and retries < 3:
+                retries += 1
+                retry_after = float(resp.headers.get("Retry-After", "1"))
+                await asyncio.sleep(retry_after)
+                continue
+            retries = 0
+
             # Provide helpful error messages
             if resp.status_code == 404:
                 raise ValueError(
