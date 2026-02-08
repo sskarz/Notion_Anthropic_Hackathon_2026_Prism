@@ -1,17 +1,25 @@
 import { useState } from 'react';
 import Prism from './Prism';
 
-interface SignUpFormProps {
-  onComplete: () => void;
+export interface UserFormData {
+  name: string;
+  company: string;
+  problem_description: string;
+  steps_to_reproduce: string;
+  urgency: 'high' | 'medium' | 'low';
 }
 
-const SignUpForm = ({ onComplete }: SignUpFormProps) => {
-  const [form, setForm] = useState({
+interface UserFormProps {
+  onComplete: (data: UserFormData) => void;
+}
+
+export default function UserForm({ onComplete }: UserFormProps) {
+  const [form, setForm] = useState<UserFormData>({
     name: '',
-    email: '',
     company: '',
-    product_description: '',
-    product_link: '',
+    problem_description: '',
+    steps_to_reproduce: '',
+    urgency: 'medium',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,20 +34,13 @@ const SignUpForm = ({ onComplete }: SignUpFormProps) => {
     setError('');
 
     try {
-      const res = await fetch('/api/signup', {
+      const res = await fetch('/api/user-intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          company: form.company,
-          product_description: form.product_description,
-          product_link: form.product_link || undefined,
-        }),
+        body: JSON.stringify(form),
       });
-
-      if (!res.ok) throw new Error('Sign-up failed');
-      onComplete();
+      if (!res.ok) throw new Error('Submission failed');
+      onComplete(form);
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -74,10 +75,10 @@ const SignUpForm = ({ onComplete }: SignUpFormProps) => {
             className="mb-1 text-center font-mono text-2xl font-bold text-text-primary"
             style={{ textShadow: '0 0 30px rgba(0, 229, 255, 0.3)' }}
           >
-            Welcome to Prism
+            Share Your Feedback
           </h2>
           <p className="mb-6 text-center text-sm text-text-secondary">
-            Tell us about your product to get started.
+            Tell us about the issue you're experiencing.
           </p>
 
           <div className="space-y-4">
@@ -90,19 +91,6 @@ const SignUpForm = ({ onComplete }: SignUpFormProps) => {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Jane Doe"
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-text-secondary">Email</label>
-              <input
-                name="email"
-                type="email"
-                required
-                value={form.email}
-                onChange={handleChange}
-                placeholder="jane@company.com"
                 className={inputClass}
               />
             </div>
@@ -122,32 +110,58 @@ const SignUpForm = ({ onComplete }: SignUpFormProps) => {
 
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                Product Description
+                Problem Description
               </label>
               <textarea
-                name="product_description"
+                name="problem_description"
                 required
                 rows={3}
-                value={form.product_description}
+                value={form.problem_description}
                 onChange={handleChange}
-                placeholder="Describe your product and what problem it solves..."
+                placeholder="Describe the problem you're experiencing..."
                 className={inputClass + ' resize-none'}
               />
             </div>
 
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                Product Link{' '}
+                Steps to Reproduce{' '}
                 <span className="text-text-secondary/50">(optional)</span>
               </label>
-              <input
-                name="product_link"
-                type="url"
-                value={form.product_link}
+              <textarea
+                name="steps_to_reproduce"
+                rows={2}
+                value={form.steps_to_reproduce}
                 onChange={handleChange}
-                placeholder="https://github.com/your-org/your-product"
-                className={inputClass}
+                placeholder="1. Go to... 2. Click on... 3. See error..."
+                className={inputClass + ' resize-none'}
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Urgency Level
+              </label>
+              <div className="flex gap-2">
+                {(['high', 'medium', 'low'] as const).map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => setForm({ ...form, urgency: level })}
+                    className={`flex-1 rounded border px-3 py-2 text-xs font-medium capitalize transition-colors ${
+                      form.urgency === level
+                        ? level === 'high'
+                          ? 'border-red-400/60 bg-red-400/15 text-red-400'
+                          : level === 'medium'
+                            ? 'border-amber-400/60 bg-amber-400/15 text-amber-400'
+                            : 'border-emerald-400/60 bg-emerald-400/15 text-emerald-400'
+                        : 'border-border-primary bg-bg-primary/40 text-text-secondary hover:bg-bg-primary/60'
+                    }`}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -160,12 +174,10 @@ const SignUpForm = ({ onComplete }: SignUpFormProps) => {
             disabled={loading}
             className="mt-6 w-full cursor-pointer rounded border border-accent-cyan/50 bg-transparent py-3 font-mono text-sm tracking-wider text-accent-cyan transition-all duration-300 hover:border-accent-cyan hover:bg-accent-cyan/10 hover:shadow-[0_0_20px_rgba(0,229,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Submitting...' : 'Begin Research'}
+            {loading ? 'Submitting...' : 'Start Interview'}
           </button>
         </form>
       </div>
     </div>
   );
-};
-
-export default SignUpForm;
+}

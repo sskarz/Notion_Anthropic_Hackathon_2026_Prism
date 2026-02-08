@@ -3,7 +3,7 @@
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import anthropic
 from dotenv import load_dotenv
@@ -16,13 +16,15 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "voice_livekit", ".env"))
 
 SIGNUPS_DIR = Path(__file__).parent / "signups"
 
+analyses_store: list[dict[str, Any]] = []
 
-class SignUpRequest(BaseModel):
+
+class UserIntakeRequest(BaseModel):
     name: str
-    email: str
     company: str
-    product_description: str
-    product_link: Optional[str] = None
+    problem_description: str
+    steps_to_reproduce: str = ""
+    urgency: str  # "high" | "medium" | "low"
 
 
 app = FastAPI()
@@ -35,40 +37,46 @@ app.add_middleware(
 )
 
 
-@app.post("/api/signup")
-async def signup(req: SignUpRequest):
+@app.post("/api/user-intake")
+async def user_intake(req: UserIntakeRequest):
     SIGNUPS_DIR.mkdir(exist_ok=True)
     now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     safe_company = req.company.replace(" ", "-").lower()
     safe_name = req.name.replace(" ", "-").lower()
-    filename = f"{safe_company}_{safe_name}_{timestamp}.md"
+    filename = f"user_{safe_company}_{safe_name}_{timestamp}.md"
 
-    product_link_line = req.product_link if req.product_link else "N/A"
-    content = f"""# Product Research Sign-Up
+    steps_section = req.steps_to_reproduce if req.steps_to_reproduce else "N/A"
+    content = f"""# User Feedback Intake
 
 ## Participant Information
 - **Name:** {req.name}
-- **Email:** {req.email}
 - **Company:** {req.company}
 
-## Product Details
+## Issue Details
 
-### Product Description
-{req.product_description}
+### Problem Description
+{req.problem_description}
 
-### Product Link
-{product_link_line}
+### Steps to Reproduce
+{steps_section}
+
+### Urgency Level
+{req.urgency.upper()}
 
 ## Metadata
-- **Signed up at:** {now.isoformat()}
+- **Submitted at:** {now.isoformat()}
 """
     (SIGNUPS_DIR / filename).write_text(content)
     return {"status": "ok"}
 
 
 @app.get("/api/token")
-async def get_token(room: str = "prism-interview", identity: str = "user"):
+async def get_token(
+    room: str = "prism-interview",
+    identity: str = "user",
+    metadata: str = "",
+):
     token = (
         api.AccessToken(
             os.getenv("LIVEKIT_API_KEY"),
@@ -76,6 +84,7 @@ async def get_token(room: str = "prism-interview", identity: str = "user"):
         )
         .with_identity(identity)
         .with_name(identity)
+        .with_metadata(metadata)
         .with_grants(api.VideoGrants(room_join=True, room=room))
     )
     jwt = token.to_jwt()
@@ -90,6 +99,7 @@ class TranscriptEntry(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     transcript: list[TranscriptEntry]
+    user_context: dict[str, Any] | None = None
 
 
 ANALYSIS_PROMPT = """\
@@ -148,7 +158,22 @@ async def analyze_transcript(req: AnalyzeRequest):
         ],
     )
     analysis = message.content[0].text
+
+    if req.user_context is not None:
+        analyses_store.append(
+            {
+                "analysis": analysis,
+                "user_context": req.user_context,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+
     return {"analysis": analysis}
+
+
+@app.get("/api/analyses")
+async def get_analyses():
+    return analyses_store
 
 
 if __name__ == "__main__":

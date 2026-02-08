@@ -87,15 +87,35 @@ export interface TranscriptEntryPayload {
   timestamp: number;
 }
 
-export async function analyzeTranscript(transcript: TranscriptEntryPayload[]): Promise<string> {
+export async function analyzeTranscript(
+  transcript: TranscriptEntryPayload[],
+  userContext?: Record<string, string>,
+): Promise<string> {
   const resp = await fetch('/api/analyze-transcript', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ transcript }),
+    body: JSON.stringify({ transcript, user_context: userContext ?? null }),
   });
   if (!resp.ok) throw new Error('Failed to analyze transcript');
   const data = await resp.json();
   return data.analysis;
+}
+
+export interface AnalysisEntry {
+  analysis: string;
+  user_context: {
+    name: string;
+    company: string;
+    problem_description: string;
+    urgency: string;
+  };
+  timestamp: string;
+}
+
+export async function fetchAnalyses(): Promise<AnalysisEntry[]> {
+  const resp = await fetch('/api/analyses');
+  if (!resp.ok) throw new Error('Failed to fetch analyses');
+  return resp.json();
 }
 
 export interface SimulationResult {
