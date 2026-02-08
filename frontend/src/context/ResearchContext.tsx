@@ -7,6 +7,7 @@ interface ResearchState {
   selectIssue: (id: string | null) => void;
   highlightQuote: (id: string | null) => void;
   selectPersona: (id: string | null) => void;
+  clearAll: () => void;
 }
 
 const ResearchContext = createContext<ResearchState | null>(null);
@@ -28,6 +29,12 @@ export function ResearchProvider({ children }: { children: ReactNode }) {
     setSelectedPersonaId((prev) => (prev === id ? null : id));
   }, []);
 
+  const clearAll = useCallback(() => {
+    setSelectedIssueId(null);
+    setHighlightedQuoteId(null);
+    setSelectedPersonaId(null);
+  }, []);
+
   return (
     <ResearchContext.Provider
       value={{
@@ -37,6 +44,7 @@ export function ResearchProvider({ children }: { children: ReactNode }) {
         selectIssue,
         highlightQuote,
         selectPersona,
+        clearAll,
       }}
     >
       {children}

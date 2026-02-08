@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Lightbulb, Zap } from 'lucide-react';
+import { Lightbulb, Zap, Home } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useIssues } from '../hooks/useIssues';
 import { useQuotes } from '../hooks/useQuotes';
@@ -48,11 +48,13 @@ function IssueDetailView({
   persona,
   relatedQuotes,
   onBackToPersona,
+  onHome,
 }: {
   issue: Issue;
   persona: Persona | null;
   relatedQuotes: Quote[];
   onBackToPersona: () => void;
+  onHome: () => void;
 }) {
   const graphData = useMemo(() => {
     if (!issue.graph_type || issue.graph_type === 'None' || !issue.graph_data) return null;
@@ -69,14 +71,23 @@ function IssueDetailView({
 
   return (
     <div className="space-y-4">
-      {persona && (
+      <div className="flex items-center gap-2">
         <button
-          onClick={onBackToPersona}
-          className="text-[11px] text-accent-cyan hover:text-accent-cyan-dim transition-colors"
+          onClick={onHome}
+          className="rounded p-1 text-text-tertiary transition-colors hover:bg-bg-tertiary hover:text-text-primary"
+          title="Back to dashboard"
         >
-          {persona.speaker_name}
+          <Home size={14} />
         </button>
-      )}
+        {persona && (
+          <button
+            onClick={onBackToPersona}
+            className="text-[11px] text-accent-cyan hover:text-accent-cyan-dim transition-colors"
+          >
+            {persona.speaker_name}
+          </button>
+        )}
+      </div>
 
       <div>
         <h2 className="text-sm font-medium text-text-primary">{issue.issue_title}</h2>
@@ -99,6 +110,15 @@ function IssueDetailView({
       </div>
 
       <p className="text-xs text-text-secondary leading-relaxed">{issue.issue_details}</p>
+
+      {persona?.persona_summary && (
+        <div className="rounded border border-border-primary bg-bg-tertiary p-2.5">
+          <h3 className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            User Summary
+          </h3>
+          <p className="text-xs text-text-secondary leading-relaxed">{persona.persona_summary}</p>
+        </div>
+      )}
 
       {issue.engineer_matching && (
         <div className="rounded border border-border-primary bg-bg-tertiary p-2.5">
@@ -181,16 +201,27 @@ function PersonaDetailView({
   persona,
   relatedIssues,
   onSelectIssue,
+  onHome,
 }: {
   persona: Persona;
   relatedIssues: Issue[];
   onSelectIssue: (id: string) => void;
+  onHome: () => void;
 }) {
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-sm font-medium text-text-primary">{persona.speaker_name}</h2>
-        <p className="mt-0.5 text-[11px] text-text-tertiary">{persona.persona_type}</p>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onHome}
+          className="rounded p-1 text-text-tertiary transition-colors hover:bg-bg-tertiary hover:text-text-primary"
+          title="Back to dashboard"
+        >
+          <Home size={14} />
+        </button>
+        <div>
+          <h2 className="text-sm font-medium text-text-primary">{persona.speaker_name}</h2>
+          <p className="mt-0.5 text-[11px] text-text-tertiary">{persona.persona_type}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -223,7 +254,7 @@ function PersonaDetailView({
       {persona.persona_summary && (
         <div className="rounded border border-border-primary bg-bg-tertiary p-2.5">
           <h3 className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-            Summary
+            User Summary
           </h3>
           <p className="text-xs text-text-secondary leading-relaxed">{persona.persona_summary}</p>
         </div>
@@ -345,7 +376,7 @@ export default function InsightsPanel() {
   const { data: quotes } = useQuotes();
   const { data: personas } = usePersonas();
   const { data: analytics } = useAnalytics();
-  const { selectedIssueId, selectedPersonaId, selectIssue } = useResearch();
+  const { selectedIssueId, selectedPersonaId, selectIssue, clearAll } = useResearch();
 
   const selectedIssue = selectedIssueId
     ? (issues ?? []).find((i) => i.id === selectedIssueId) ?? null
@@ -386,6 +417,7 @@ export default function InsightsPanel() {
         persona={issuePersona}
         relatedQuotes={relatedQuotes}
         onBackToPersona={() => selectIssue(null)}
+        onHome={clearAll}
       />
     );
   } else if (selectedPersona) {
@@ -394,6 +426,7 @@ export default function InsightsPanel() {
         persona={selectedPersona}
         relatedIssues={personaIssues}
         onSelectIssue={(id) => selectIssue(id)}
+        onHome={clearAll}
       />
     );
   } else {

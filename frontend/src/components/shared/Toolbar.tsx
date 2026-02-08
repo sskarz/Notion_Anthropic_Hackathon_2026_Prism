@@ -1,10 +1,8 @@
 interface ToolbarProps {
   onLogoClick?: () => void;
-  connected: boolean;
-  interviewCount: number;
 }
 
-export default function Toolbar({ onLogoClick, connected, interviewCount }: ToolbarProps) {
+export default function Toolbar({ onLogoClick }: ToolbarProps) {
   return (
     <div className="flex h-12 shrink-0 items-center border-b border-border-primary bg-bg-secondary px-4">
       <button
@@ -22,16 +20,6 @@ export default function Toolbar({ onLogoClick, connected, interviewCount }: Tool
         <span className="text-sm font-medium text-text-secondary">
           Notion PM User Research - Custom Agents
         </span>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5">
-          <div className={`h-2 w-2 rounded-full ${connected ? 'bg-success' : 'bg-error'}`} />
-          <span className="text-xs text-text-secondary">{connected ? 'Connected' : 'Disconnected'}</span>
-        </div>
-        <div className="rounded bg-bg-tertiary px-2 py-0.5 text-xs text-text-secondary">
-          {interviewCount} interview{interviewCount !== 1 ? 's' : ''}
-        </div>
       </div>
     </div>
   );

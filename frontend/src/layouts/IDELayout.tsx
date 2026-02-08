@@ -42,7 +42,7 @@ function Placeholder({ label }: { label: string }) {
 export default function IDELayout({ left, center, right, bottom, onLogoClick, connected, lastSync, interviewCount }: IDELayoutProps) {
   return (
     <div className="flex h-screen flex-col">
-      <Toolbar onLogoClick={onLogoClick} connected={connected} interviewCount={interviewCount} />
+      <Toolbar onLogoClick={onLogoClick} />
       <div className="flex-1 overflow-hidden">
         <Group orientation="vertical">
           <Panel>
