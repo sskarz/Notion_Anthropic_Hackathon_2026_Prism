@@ -24,6 +24,7 @@ analyses_store: list[dict[str, Any]] = []
 class UserIntakeRequest(BaseModel):
     name: str
     company: str
+    role: str  # "engineer" | "product_manager" | "designer" | "customer" | "sales" | "support" | "executive" | "other"
     problem_description: str
     steps_to_reproduce: str = ""
     urgency: str  # "high" | "medium" | "low"
@@ -54,6 +55,7 @@ async def user_intake(req: UserIntakeRequest):
 ## Participant Information
 - **Name:** {req.name}
 - **Company:** {req.company}
+- **Role:** {req.role}
 
 ## Issue Details
 
@@ -110,7 +112,10 @@ You are a product research analyst. Analyze the following interview transcript b
 Produce a structured markdown report with these sections:
 
 ## User Persona
-A brief description of who this user is based on what they shared — their role, goals, pain points, and context.
+A brief description of who this user is based on what they shared — their goals, pain points, and context.
+
+## User Role
+Identify the user's role within their company (e.g. Engineer, Product Manager, Designer, Customer, Sales, Support, Executive). Describe how their role influences the feedback they provided — what lens are they viewing the product through? How does their role shape the issues they raised and what they care about most?
 
 ## Product Issues
 A table of product issues or feedback themes identified in the interview, prioritized by severity:
@@ -137,7 +142,7 @@ A 2-3 sentence executive summary of the most important findings from this interv
 Here is the transcript:
 
 {transcript}
-"""
+{user_context_section}"""
 
 STRUCTURED_EXTRACTION_PROMPT = """\
 You are a product research data extractor. Given the following interview transcript, extract structured data as JSON.
@@ -195,6 +200,13 @@ async def analyze_transcript(req: AnalyzeRequest):
         lines.append(f"{speaker}: {entry.text}")
     transcript_text = "\n".join(lines)
 
+    user_context_section = ""
+    if req.user_context:
+        ctx_lines = ["\n\nAdditional context about the user (from intake form):"]
+        for key, value in req.user_context.items():
+            ctx_lines.append(f"- {key}: {value}")
+        user_context_section = "\n".join(ctx_lines)
+
     client = anthropic.Anthropic()
 
     # Two Claude calls: markdown analysis + structured JSON extraction
@@ -204,7 +216,10 @@ async def analyze_transcript(req: AnalyzeRequest):
         messages=[
             {
                 "role": "user",
-                "content": ANALYSIS_PROMPT.format(transcript=transcript_text),
+                "content": ANALYSIS_PROMPT.format(
+                    transcript=transcript_text,
+                    user_context_section=user_context_section,
+                ),
             }
         ],
     )
