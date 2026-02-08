@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Quote } from '../types/quote.ts';
 import { fetchQuotes } from '../services/api.ts';
 
+const POLL_MS = 3000;
+
 export function useQuotes() {
   const [data, setData] = useState<Quote[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,8 @@ export function useQuotes() {
 
   useEffect(() => {
     refresh();
+    const id = setInterval(refresh, POLL_MS);
+    return () => clearInterval(id);
   }, [refresh]);
 
   return { data, loading, error, refresh };

@@ -39,6 +39,8 @@ async def create_persona(p: PersonaCreate) -> str:
         "Goals": map_rich_text(p.goals),
         "Constraints": map_rich_text(p.constraints),
     }
+    if p.speaker_name:
+        props["Speaker Name"] = map_rich_text(p.speaker_name)
     return await _create_page(DATABASE_IDS["personas"], props)
 
 

@@ -81,61 +81,9 @@ export async function fetchAnalyses(): Promise<AnalysisEntry[]> {
   return resp.json();
 }
 
-export interface SimulationResult {
-  extraction_id: string;
-  status: string;
-}
-
-export async function simulateInterview(): Promise<SimulationResult> {
-  const payload = {
-    personas: [
-      {
-        persona_type: 'Head of Product at EdTech Startup',
-        primary_use_case: 'Template-driven onboarding for faster activation',
-        communication_style: 'Analytical',
-        goals: 'Reduce time-to-first-value from 3 days to 20 minutes',
-        constraints: 'Small team, limited engineering resources',
-      },
-    ],
-    quotes: [
-      {
-        quote_text:
-          'Templates are not just shortcuts, they are the entire onboarding strategy. When someone picks a template, they have told you their intent.',
-        speaker: 'Lisa Torres, Head of Product at EduScale',
-        sentiment: 'Positive',
-        quote_type: 'Insight',
-        temp_persona_index: 0,
-      },
-      {
-        quote_text:
-          'Three days to first value is three days where the user is deciding to leave. We got it down to 20 minutes and churn dropped by half.',
-        speaker: 'Lisa Torres, Head of Product at EduScale',
-        sentiment: 'Positive',
-        quote_type: 'Insight',
-        temp_persona_index: 0,
-      },
-    ],
-    issues: [
-      {
-        issue_title:
-          'Template-driven onboarding captures user intent and accelerates activation',
-        issue_type: 'Feature Request',
-        issue_details:
-          'When users select a template during onboarding, they implicitly declare their use case. Products that leverage this signal see dramatically faster time-to-value.',
-        severity: 'High',
-        temp_persona_index: 0,
-        temp_quote_indices: [0, 1],
-      },
-    ],
-  };
-
-  const res = await fetch(`${API_BASE_URL}/api/extraction-summary`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`Simulation failed: ${res.status}`);
-  return res.json();
+export async function checkHealth(): Promise<boolean> {
+  const res = await fetch(`${API_BASE_URL}/health`);
+  return res.ok;
 }
 
 export interface ExaResearchResult {

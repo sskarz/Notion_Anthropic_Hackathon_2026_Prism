@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AnalyticsData } from '../types/analytics.ts';
 import { fetchAnalytics } from '../services/api.ts';
 
+const POLL_MS = 3000;
+
 export function useAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,8 @@ export function useAnalytics() {
 
   useEffect(() => {
     refresh();
+    const id = setInterval(refresh, POLL_MS);
+    return () => clearInterval(id);
   }, [refresh]);
 
   return { data, loading, error, refresh };

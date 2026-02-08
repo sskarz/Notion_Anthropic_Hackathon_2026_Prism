@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Persona } from '../types/persona.ts';
 import { fetchPersonas } from '../services/api.ts';
 
+const POLL_MS = 3000;
+
 export function usePersonas() {
   const [data, setData] = useState<Persona[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,8 @@ export function usePersonas() {
 
   useEffect(() => {
     refresh();
+    const id = setInterval(refresh, POLL_MS);
+    return () => clearInterval(id);
   }, [refresh]);
 
   return { data, loading, error, refresh };

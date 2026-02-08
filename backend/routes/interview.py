@@ -152,6 +152,7 @@ Output ONLY valid JSON matching this exact schema (no markdown fencing, no comme
   "personas": [
     {{
       "persona_type": "string (e.g. 'Senior PM at SaaS Startup')",
+      "speaker_name": "string (the interviewee's actual name)",
       "primary_use_case": "string",
       "communication_style": "Analytical" | "Narrative" | "Terse" | "Verbose",
       "goals": "string",
@@ -184,6 +185,7 @@ Rules:
 - temp_quote_indices references indices in the quotes array (0-based)
 - Extract 1-3 personas, 3-6 quotes, and 2-5 issues
 - communication_style MUST be exactly one of: Analytical, Narrative, Terse, Verbose
+- speaker_name should be the interviewee's real name from the transcript, or "Unknown" if not available
 
 Transcript:
 
@@ -193,9 +195,13 @@ Transcript:
 
 @router.post("/analyze-transcript")
 async def analyze_transcript(req: AnalyzeRequest):
+    user_name = "User"
+    if req.user_context and req.user_context.get("name"):
+        user_name = req.user_context["name"]
+
     lines = []
     for entry in req.transcript:
-        speaker = "Interviewer (Prism)" if entry.speaker == "agent" else "User"
+        speaker = "Interviewer (Prism)" if entry.speaker == "agent" else user_name
         lines.append(f"{speaker}: {entry.text}")
     transcript_text = "\n".join(lines)
 
