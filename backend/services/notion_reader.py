@@ -1,3 +1,6 @@
+import asyncio
+import logging
+import time
 from typing import Any
 
 import httpx
@@ -9,7 +12,13 @@ from models.quote import Quote
 from models.issue import Issue
 from models.competitor import Competitor
 
+logger = logging.getLogger("prism.notion_reader")
+
 _client = AsyncClient(auth=NOTION_TOKEN)
+
+CACHE_TTL_S = 5.0
+_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+_inflight: dict[str, asyncio.Task[list[dict[str, Any]]]] = {}
 
 
 def _extract_title(props: dict[str, Any], key: str) -> str:
@@ -41,7 +50,30 @@ def _extract_url(props: dict[str, Any], key: str) -> str:
 
 
 async def _query_database(database_id: str) -> list[dict[str, Any]]:
-    import asyncio
+    now = time.monotonic()
+    cached = _cache.get(database_id)
+    if cached and (now - cached[0]) < CACHE_TTL_S:
+        logger.info("[cache] HIT db=%s age=%.1fs", database_id[:8], now - cached[0])
+        return cached[1]
+
+    if database_id in _inflight:
+        logger.info("[cache] DEDUP db=%s (reusing in-flight query)", database_id[:8])
+        return await _inflight[database_id]
+
+    task = asyncio.create_task(_query_database_raw(database_id))
+    _inflight[database_id] = task
+    try:
+        result = await task
+        _cache[database_id] = (time.monotonic(), result)
+        return result
+    finally:
+        _inflight.pop(database_id, None)
+
+
+async def _query_database_raw(database_id: str) -> list[dict[str, Any]]:
+    t0 = time.monotonic()
+    db_name = next((k for k, v in DATABASE_IDS.items() if v == database_id), database_id[:8])
+    logger.info("[notion] QUERY db=%s", db_name)
 
     pages: list[dict[str, Any]] = []
     cursor = None
@@ -100,7 +132,9 @@ async def _query_database(database_id: str) -> list[dict[str, Any]]:
             if not response.get("has_more"):
                 break
             cursor = response.get("next_cursor")
-    
+
+    elapsed = (time.monotonic() - t0) * 1000
+    logger.info("[notion] DONE db=%s rows=%d (%.0fms)", db_name, len(pages), elapsed)
     return pages
 
 
