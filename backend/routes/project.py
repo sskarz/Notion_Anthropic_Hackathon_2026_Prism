@@ -1,3 +1,4 @@
+import asyncio
 from collections import Counter
 
 from fastapi import APIRouter
@@ -14,11 +15,11 @@ router = APIRouter()
 
 @router.get("/project/context")
 async def project_context():
-    issues, personas, quotes, competitors = (
-        await get_all_issues(),
-        await get_all_personas(),
-        await get_all_quotes(),
-        await get_all_competitors(),
+    issues, personas, quotes, competitors = await asyncio.gather(
+        get_all_issues(),
+        get_all_personas(),
+        get_all_quotes(),
+        get_all_competitors(),
     )
     return {
         "issues": [i.model_dump() for i in issues],
@@ -30,11 +31,11 @@ async def project_context():
 
 @router.get("/project/analytics")
 async def project_analytics():
-    issues, personas, quotes, competitors = (
-        await get_all_issues(),
-        await get_all_personas(),
-        await get_all_quotes(),
-        await get_all_competitors(),
+    issues, personas, quotes, competitors = await asyncio.gather(
+        get_all_issues(),
+        get_all_personas(),
+        get_all_quotes(),
+        get_all_competitors(),
     )
 
     issues_by_severity = dict(Counter(i.severity for i in issues))

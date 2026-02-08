@@ -48,7 +48,7 @@ async def _query_database(database_id: str) -> list[dict[str, Any]]:
     retries = 0
 
     # Use httpx directly since the notion-client API structure varies
-    async with httpx.AsyncClient() as http_client:
+    async with httpx.AsyncClient(timeout=10.0) as http_client:
         while True:
             # Build query body
             body: dict[str, Any] = {}
