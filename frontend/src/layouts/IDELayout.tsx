@@ -9,7 +9,9 @@ interface IDELayoutProps {
   right?: ReactNode;
   bottom?: ReactNode;
   onLogoClick?: () => void;
-  onSimulate?: () => void;
+  connected: boolean;
+  lastSync: Date | null;
+  interviewCount: number;
 }
 
 function ResizeHandle({ orientation }: { orientation: 'horizontal' | 'vertical' }) {
@@ -37,10 +39,10 @@ function Placeholder({ label }: { label: string }) {
   );
 }
 
-export default function IDELayout({ left, center, right, bottom, onLogoClick, onSimulate }: IDELayoutProps) {
+export default function IDELayout({ left, center, right, bottom, onLogoClick, connected, lastSync, interviewCount }: IDELayoutProps) {
   return (
     <div className="flex h-screen flex-col">
-      <Toolbar onLogoClick={onLogoClick} onSimulate={onSimulate} />
+      <Toolbar onLogoClick={onLogoClick} connected={connected} interviewCount={interviewCount} />
       <div className="flex-1 overflow-hidden">
         <Group orientation="vertical">
           <Panel>
@@ -64,7 +66,7 @@ export default function IDELayout({ left, center, right, bottom, onLogoClick, on
           </Panel>
         </Group>
       </div>
-      <StatusBar />
+      <StatusBar connected={connected} lastSync={lastSync} interviewCount={interviewCount} />
     </div>
   );
 }

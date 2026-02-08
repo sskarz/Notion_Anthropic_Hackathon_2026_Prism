@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Competitor } from '../types/competitor.ts';
 import { fetchCompetitors } from '../services/api.ts';
 
+const POLL_MS = 3000;
+
 export function useCompetitors() {
   const [data, setData] = useState<Competitor[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,8 @@ export function useCompetitors() {
 
   useEffect(() => {
     refresh();
+    const id = setInterval(refresh, POLL_MS);
+    return () => clearInterval(id);
   }, [refresh]);
 
   return { data, loading, error, refresh };
