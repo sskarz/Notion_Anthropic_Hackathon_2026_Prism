@@ -14,7 +14,6 @@ from livekit import api
 from pydantic import BaseModel
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
-load_dotenv(os.path.join(os.path.dirname(__file__), "voice_livekit", ".env"))
 
 SIGNUPS_DIR = Path(__file__).parent / "signups"
 

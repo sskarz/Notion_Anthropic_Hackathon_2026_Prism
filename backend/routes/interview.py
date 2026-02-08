@@ -51,6 +51,7 @@ async def get_token(
 class UserIntakeRequest(BaseModel):
     name: str
     company: str
+    role: str = ""
     problem_description: str
     steps_to_reproduce: str = ""
     urgency: str  # "high" | "medium" | "low"
@@ -71,6 +72,7 @@ async def user_intake(req: UserIntakeRequest):
 ## Participant Information
 - **Name:** {req.name}
 - **Company:** {req.company}
+- **Role:** {req.role}
 
 ## Issue Details
 

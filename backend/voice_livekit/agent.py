@@ -1,4 +1,5 @@
 import json
+import os
 
 from dotenv import load_dotenv
 
@@ -7,7 +8,7 @@ from livekit.agents import AgentServer, AgentSession, Agent, inference
 from livekit.plugins import cartesia, anthropic
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 
 class InterviewAgent(Agent):

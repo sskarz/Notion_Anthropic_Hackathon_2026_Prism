@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
-load_dotenv(os.path.join(os.path.dirname(__file__), "voice_livekit", ".env"))
 
 # Support both new and old env var names for backward compatibility
 NOTION_TOKEN: str = os.environ.get(
