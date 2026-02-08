@@ -1,182 +1,162 @@
 import { API_BASE_URL, MOCK_DELAY_MS } from '../lib/constants.ts';
-import type { ResearchProject } from '../types/project.ts';
-import type { InterviewTranscript } from '../types/transcript.ts';
-import type { QuoteEvidence } from '../types/quote.ts';
-import type { MarketIntelligence } from '../types/market.ts';
-import type { CompetitorEntry } from '../types/competitor.ts';
-import type { InsightTheme } from '../types/insight.ts';
-import type { ActionItem } from '../types/action.ts';
+import type { Issue } from '../types/issue.ts';
+import type { Persona } from '../types/persona.ts';
+import type { Quote } from '../types/quote.ts';
+import type { Competitor } from '../types/competitor.ts';
 import type { AnalyticsData } from '../types/analytics.ts';
-import {
-  mockProject,
-  mockTranscripts,
-  mockQuotes,
-  mockMarketIntel,
-  mockCompetitors,
-  mockInsights,
-  mockActions,
-} from '../mocks/data.ts';
+import { mockIssues, mockPersonas, mockQuotes, mockCompetitors } from '../mocks/data.ts';
 import { mockAnalytics } from '../mocks/analytics.ts';
 
-// @ts-expect-error -- will be used when real API calls replace mocks
-const _API_BASE = API_BASE_URL;
+const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchProject(projectId: string): Promise<ResearchProject> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/context`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockProject;
+interface ProjectContext {
+  issues: Issue[];
+  personas: Persona[];
+  quotes: Quote[];
+  competitors: Competitor[];
 }
 
-export async function fetchTranscripts(projectId: string): Promise<InterviewTranscript[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/transcripts`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockTranscripts;
+export async function fetchProjectContext(): Promise<ProjectContext> {
+  if (USE_MOCK) {
+    await delay(MOCK_DELAY_MS);
+    return {
+      issues: mockIssues,
+      personas: mockPersonas,
+      quotes: mockQuotes,
+      competitors: mockCompetitors,
+    };
+  }
+  const res = await fetch(`${API_BASE_URL}/api/project/context`);
+  if (!res.ok) throw new Error(`Failed to fetch project context: ${res.status}`);
+  return res.json();
 }
 
-export async function fetchQuotes(projectId: string): Promise<QuoteEvidence[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/quotes`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockQuotes;
+export async function fetchIssues(): Promise<Issue[]> {
+  const ctx = await fetchProjectContext();
+  return ctx.issues;
 }
 
-export async function fetchMarketIntel(projectId: string): Promise<MarketIntelligence[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/market-intel`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockMarketIntel;
+export async function fetchPersonas(): Promise<Persona[]> {
+  const ctx = await fetchProjectContext();
+  return ctx.personas;
 }
 
-export async function fetchCompetitors(projectId: string): Promise<CompetitorEntry[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/competitors`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockCompetitors;
+export async function fetchQuotes(): Promise<Quote[]> {
+  const ctx = await fetchProjectContext();
+  return ctx.quotes;
 }
 
-export async function fetchInsights(projectId: string): Promise<InsightTheme[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/insights`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockInsights;
+export async function fetchCompetitors(): Promise<Competitor[]> {
+  const ctx = await fetchProjectContext();
+  return ctx.competitors;
 }
 
-export async function fetchActionItems(projectId: string): Promise<ActionItem[]> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/actions`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockActions;
+export async function fetchAnalytics(): Promise<AnalyticsData> {
+  if (USE_MOCK) {
+    await delay(MOCK_DELAY_MS);
+    return mockAnalytics;
+  }
+  const res = await fetch(`${API_BASE_URL}/api/project/analytics`);
+  if (!res.ok) throw new Error(`Failed to fetch analytics: ${res.status}`);
+  return res.json();
 }
 
-export async function fetchAnalytics(projectId: string): Promise<AnalyticsData> {
-  // REAL: return fetch(`${_API_BASE}/project/${projectId}/analytics`).then(r => r.json());
-  void projectId;
-  await delay(MOCK_DELAY_MS);
-  return mockAnalytics;
+export interface TranscriptEntryPayload {
+  speaker: 'user' | 'agent';
+  text: string;
+  timestamp: number;
+}
+
+export async function analyzeTranscript(
+  transcript: TranscriptEntryPayload[],
+  userContext?: Record<string, string>,
+): Promise<string> {
+  const resp = await fetch('/api/analyze-transcript', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transcript, user_context: userContext ?? null }),
+  });
+  if (!resp.ok) throw new Error('Failed to analyze transcript');
+  const data = await resp.json();
+  return data.analysis;
+}
+
+export interface AnalysisEntry {
+  analysis: string;
+  user_context: {
+    name: string;
+    company: string;
+    problem_description: string;
+    urgency: string;
+  };
+  timestamp: string;
+}
+
+export async function fetchAnalyses(): Promise<AnalysisEntry[]> {
+  const resp = await fetch('/api/analyses');
+  if (!resp.ok) throw new Error('Failed to fetch analyses');
+  return resp.json();
 }
 
 export interface SimulationResult {
-  transcript: InterviewTranscript;
-  quotes: QuoteEvidence[];
-  insight: InsightTheme;
-  action: ActionItem;
+  personas: Persona[];
+  quotes: Quote[];
+  issues: Issue[];
 }
 
 export function simulateNewInterviewData(): SimulationResult {
-  const transcript: InterviewTranscript = {
-    id: 'tx-005',
-    project_id: 'proj-onboarding-001',
-    participant: {
-      name: 'Lisa Torres',
-      role: 'Head of Product',
-      company: 'EduScale',
-      industry: 'EdTech',
-    },
-    duration_minutes: 22,
-    coverage_score: 0.81,
-    key_topics: [
-      'self-serve onboarding',
-      'template-driven activation',
-      'team collaboration',
-      'onboarding analytics',
-    ],
-    summary:
-      'Lisa shared how EduScale redesigned their onboarding around templates. New users pick a use-case template and see real-looking data immediately. She emphasized that tracking onboarding funnel drop-off per step was the key to iterating effectively. Her team reduced time-to-first-value from 3 days to 20 minutes.',
-    conducted_at: '2026-02-07T10:00:00Z',
-    created_at: '2026-02-07T11:00:00Z',
+  const persona: Persona = {
+    id: 'persona-sim-001',
+    created_time: new Date().toISOString(),
+    persona_type: 'Head of Product at EdTech Startup',
+    primary_use_case: 'Template-driven onboarding for faster activation',
+    communication_style: 'Analytical',
+    goals: 'Reduce time-to-first-value from 3 days to 20 minutes',
+    constraints: 'Small team, limited engineering resources',
   };
 
-  const quotes: QuoteEvidence[] = [
+  const quotes: Quote[] = [
     {
-      id: 'q-014',
-      project_id: 'proj-onboarding-001',
-      text: 'Templates are not just shortcuts, they are the entire onboarding strategy. When someone picks a template, they have told you their intent. Use that.',
-      source_type: 'Interview',
-      source_id: 'tx-005',
-      speaker_name: 'Lisa Torres',
-      speaker_role: 'Head of Product, EduScale',
-      sentiment: 'positive',
-      theme_ids: ['ins-003', 'ins-007'],
-      created_at: '2026-02-07T11:00:00Z',
+      id: 'q-sim-001',
+      created_time: new Date().toISOString(),
+      quote_text: 'Templates are not just shortcuts, they are the entire onboarding strategy. When someone picks a template, they have told you their intent.',
+      speaker: 'Lisa Torres, Head of Product at EduScale',
+      sentiment: 'Positive',
+      quote_type: 'Insight',
+      related_persona_id: 'persona-sim-001',
+      related_issue_id: null,
+      competitor_mentioned_id: null,
     },
     {
-      id: 'q-015',
-      project_id: 'proj-onboarding-001',
-      text: 'We track drop-off at every onboarding step. Step 3 was killing us until we made it optional. Completion went from 34% to 78% overnight.',
-      source_type: 'Interview',
-      source_id: 'tx-005',
-      speaker_name: 'Lisa Torres',
-      speaker_role: 'Head of Product, EduScale',
-      sentiment: 'positive',
-      theme_ids: ['ins-003', 'ins-007'],
-      created_at: '2026-02-07T11:01:00Z',
-    },
-    {
-      id: 'q-016',
-      project_id: 'proj-onboarding-001',
-      text: 'Three days to first value is three days where the user is deciding to leave. We got it down to 20 minutes and churn dropped by half.',
-      source_type: 'Interview',
-      source_id: 'tx-005',
-      speaker_name: 'Lisa Torres',
-      speaker_role: 'Head of Product, EduScale',
-      sentiment: 'positive',
-      theme_ids: ['ins-003'],
-      created_at: '2026-02-07T11:02:00Z',
+      id: 'q-sim-002',
+      created_time: new Date().toISOString(),
+      quote_text: 'Three days to first value is three days where the user is deciding to leave. We got it down to 20 minutes and churn dropped by half.',
+      speaker: 'Lisa Torres, Head of Product at EduScale',
+      sentiment: 'Positive',
+      quote_type: 'Insight',
+      related_persona_id: 'persona-sim-001',
+      related_issue_id: null,
+      competitor_mentioned_id: null,
     },
   ];
 
-  const insight: InsightTheme = {
-    id: 'ins-007',
-    project_id: 'proj-onboarding-001',
-    title: 'Template-driven onboarding captures user intent and accelerates activation',
-    description:
-      'When users select a template during onboarding, they implicitly declare their use case. Products that leverage this signal to pre-configure the experience see dramatically faster time-to-value and higher completion rates. Step-level analytics are critical for iterating on the flow.',
-    category: 'Opportunity',
-    confidence_score: 0.79,
-    supporting_quote_ids: ['q-014', 'q-015', 'q-016'],
-    created_at: '2026-02-07T12:00:00Z',
-    updated_at: '2026-02-07T12:00:00Z',
+  const issue: Issue = {
+    id: 'issue-sim-001',
+    created_time: new Date().toISOString(),
+    issue_title: 'Template-driven onboarding captures user intent and accelerates activation',
+    issue_type: 'Feature Request',
+    issue_details: 'When users select a template during onboarding, they implicitly declare their use case. Products that leverage this signal see dramatically faster time-to-value.',
+    severity: 'High',
+    related_persona_id: 'persona-sim-001',
+    related_quote_ids: ['q-sim-001', 'q-sim-002'],
+    engineer_matching: '',
+    graph_type: null,
+    exa_trigger: false,
   };
 
-  const action: ActionItem = {
-    id: 'act-005',
-    project_id: 'proj-onboarding-001',
-    title: 'Implement template-first onboarding with step-level analytics',
-    description:
-      'Create onboarding flow where users select a use-case template as their first action. Pre-populate the workspace with template-appropriate sample data. Instrument every step with analytics to track drop-off and iterate. Target: time-to-first-value under 10 minutes.',
-    priority: 'P1',
-    type: 'Feature',
-    status: 'Proposed',
-    supporting_insight_ids: ['ins-003', 'ins-007'],
-    created_at: '2026-02-07T12:05:00Z',
-    updated_at: '2026-02-07T12:05:00Z',
-  };
-
-  return { transcript, quotes, insight, action };
+  return { personas: [persona], quotes, issues: [issue] };
 }

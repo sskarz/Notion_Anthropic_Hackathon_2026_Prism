@@ -7,187 +7,172 @@ Parent page ID: 2fe77641-d6c8-815c-adab-e77f25e9c964
 
 | Database              | Database ID                          | Data Source (Collection) ID              |
 |-----------------------|--------------------------------------|------------------------------------------|
-| Research Projects     | bf0bcc87-f6cd-434c-b8c4-200be9e5a2b1 | ff506189-99a9-4357-92d6-836d8462b1f4    |
-| Interview Transcripts | e0fdc4c5-4b83-40c8-a6b9-13b84b2b8153 | e1314969-5ddd-40c1-953c-48f13fb5d536    |
-| Quotes & Evidence     | 84d88589-65b2-4497-9835-72bf4ab9857b | 7eb00b51-1529-443b-805a-a7acdafcd007    |
-| Market Intelligence   | e0c128cf-0e1c-4b79-99f4-c2866fcdfb07 | abed5ac9-efa1-4b2c-9f48-12814037f31f    |
+| Issues                | 37a0541c-5a3b-4103-ac9c-2ab99ce66812 | 578ede18-7e6d-4548-a5a0-9d7ec6da13f0    |
+| Personas              | 8ae9dd9c-b488-4253-a8e2-1c49a14329bf | 05336641-2386-44d6-adb0-45c4e11116b7    |
+| Quotes                | 036ee354-4005-4ccd-ad83-3b9a035eaa42 | 5084a27c-ae6a-406d-a1d1-85cd3de78111    |
 | Competitive Landscape | 38e7bdee-9467-4370-91b9-cbf800fb9bfe | 0d8b7908-7d82-4c8c-b4e9-8090b650d0ad    |
-| Insights & Themes     | 527a24c2-86c0-4c2e-8077-673c587e1dd3 | ed311949-2c1e-4382-a930-f50ce78ff322    |
-| Action Items/PRD Seeds| 7cfe54f6-25f7-475a-9005-ff2030c924ad | 54ad032d-ee1c-493f-8d33-a7e53692d78b    |
 
-## Hackathon Data Strategy
+## Agent Pipeline
 
-PRE-POPULATED (done tonight, already seeded):
+Interview → **Claude Agent** (extracts personas, quotes, issues from transcript)
+→ **Notion Agent** (populates DBs, adds engineer matching, graph type, triggers Exa)
+→ **Exa** (competitive search → creates Competitive Landscape entries)
 
-- Research Projects — hypothesis, persona, key questions
-- Market Intelligence — Exa search results, articles, reports
-- Competitive Landscape — competitor features, pricing, reviews
-- Quotes & Evidence — sample scraped reviews from G2/Capterra/Reddit
-
-WRITTEN LIVE DURING DEMO:
-
-- Interview Transcripts — voice agent writes after interview ends
-- Quotes & Evidence — extracted interview quotes (added to existing reviews)
-- Insights & Themes — Custom Agent (Task Routing + Status Update) writes
-- Action Items / PRD Seeds — Custom Agent writes
+No full transcripts stored. Claude Agent extracts only the signal: personas, quotes, issues.
 
 ---
 
-## 1. Research Projects
+## 1. Issues
 
-The root entity. Everything relates back here.
+The core output table. Claude Agent extracts issues from interviews, Notion Agent enriches with engineer matching, graph suggestions, and Exa triggers.
 
-Database ID: bf0bcc87-f6cd-434c-b8c4-200be9e5a2b1
+Data Source ID: `578ede18-7e6d-4548-a5a0-9d7ec6da13f0`
 
 | Property         | Type     | Values / Notes                                        |
 |------------------|----------|-------------------------------------------------------|
-| Project Name     | title    | e.g., "Onboarding experience for mid-market"          |
-| Status           | select   | Planning / Researching / Synthesizing / Complete       |
-| Hypothesis       | text     | What we believe to be true                             |
-| Target Persona   | text     | Who we're researching                                  |
-| Key Questions    | text     | 3-7 must-answer questions                              |
-| Interview Style  | select   | Exploratory / Validation / Usability                   |
-| Target Interviews| number   | How many interviews planned                            |
-| Owner            | person   | PM responsible                                         |
-
-Relations: Other DBs point TO this one. This is the hub.
-
----
-
-## 2. Interview Transcripts
-
-Written by voice agent post-interview via Notion API.
-
-Database ID: e0fdc4c5-4b83-40c8-a6b9-13b84b2b8153
-
-| Property          | Type     | Values / Notes                                       |
-|-------------------|----------|------------------------------------------------------|
-| Title             | title    | "Interview with [Participant] — [Date]"              |
-| Research Project  | relation | → Research Projects DB (ff506189...)                 |
-| Participant Name  | text     | Interviewee name                                     |
-| Participant Role  | text     | Job title / context                                  |
-| Duration          | number   | Minutes                                              |
-| Date              | date     | Interview date                                       |
-| Status            | select   | Scheduled / Completed / Processing                   |
-| Summary           | text     | Claude-generated 3-5 takeaways                       |
-| Coverage Score    | number   | % of key questions addressed (0-100)                 |
-| Quotes            | relation | → Quotes & Evidence DB (7eb00b51...)                 |
-
-Page content: Full transcript text as the page body.
+| Issue Title      | title    | e.g., "Research data is siloed across 5+ tools"       |
+| Issue Type       | select   | Pain Point / Feature Request / Workflow Gap / Unmet Need |
+| Issue Details    | text     | Claude agent's extracted description                  |
+| Severity         | select   | Critical / High / Medium / Low                        |
+| Attachments      | files    | Screenshots, diagrams, etc.                           |
+| Related Quotes   | relation | → Quotes DB (5084a27c...)                             |
+| Related Persona  | relation | → Personas DB (05336641...)                           |
+| Engineer Matching| text     | Notion agent enrichment — suggested eng skills/team   |
+| Graph Type       | select   | Bar / Trend / Heatmap / None                          |
+| Exa Trigger      | checkbox | Notion agent flags issues that should trigger competitive search |
 
 ---
 
-## 3. Quotes & Evidence
+## 2. Personas
 
-CRITICAL: Interview quotes AND scraped review quotes share this DB.
-This enables cross-source synthesis (interview quote + G2 review = validated theme).
+User archetypes extracted from interviews by the Claude Agent.
 
-Database ID: 84d88589-65b2-4497-9835-72bf4ab9857b
+Data Source ID: `05336641-2386-44d6-adb0-45c4e11116b7`
 
-| Property             | Type         | Values / Notes                                    |
-|----------------------|--------------|---------------------------------------------------|
-| Quote Text           | title        | The actual quote/statement                        |
-| Source Type          | select       | Interview / G2 Review / Capterra Review / Reddit / Product Hunt |
-| Speaker/Author       | text         | Interviewee name or reviewer identifier           |
-| Sentiment            | select       | Positive / Negative / Neutral / Mixed             |
-| Topics               | multi_select | Onboarding / Pricing / AI Quality / Workflow / Integrations / Research Synthesis / Voice/Interview / Collaboration / Data Management |
-| Interview Transcript | relation     | → Interview Transcripts DB (e1314969...)           |
-| Competitor           | relation     | → Competitive Landscape DB (0d8b7908...)           |
-| Research Project     | relation     | → Research Projects DB (ff506189...)               |
-| Related Themes       | relation     | → Insights & Themes DB (ed311949...)               |
-| Date                 | date         | When quote was captured                            |
+| Property            | Type   | Values / Notes                                     |
+|---------------------|--------|----------------------------------------------------|
+| Persona Type        | title  | e.g., "Growth PM at Series B SaaS"                |
+| Primary Use Case    | text   | What they're trying to accomplish                  |
+| Communication Style | select | Analytical / Narrative / Terse / Verbose           |
+| Goals               | text   | What success looks like for them                   |
+| Constraints         | text   | Budget, team size, tool lock-in, org politics      |
 
 ---
 
-## 4. Market Intelligence
+## 3. Quotes
 
-Pre-populated from Exa API searches.
+Verbatim quotes extracted from interviews. No full transcript stored — just the signal.
 
-Database ID: e0c128cf-0e1c-4b79-99f4-c2866fcdfb07
+Data Source ID: `5084a27c-ae6a-406d-a1d1-85cd3de78111`
 
-| Property         | Type         | Values / Notes                                     |
-|------------------|--------------|----------------------------------------------------|
-| Title            | title        | Article/report title                               |
-| Source URL       | url          | Link to original                                   |
-| Source Name      | text         | Publication name                                   |
-| Summary          | text         | Claude-generated 2-3 sentence summary              |
-| Relevance Score  | number       | 0-1, how relevant to research project              |
-| Topics           | multi_select | AI in PM Tools / User Research Automation / Voice AI / Market Trends / Competitive Analysis / Product-Led Growth / Research Ops / Enterprise PM |
-| Source Type      | select       | Article / Report / Discussion / Review / Launch    |
-| Date Published   | date         | Original publication date                          |
-| Research Project | relation     | → Research Projects DB (ff506189...)               |
-| Related Themes   | relation     | → Insights & Themes DB (ed311949...)               |
+| Property           | Type     | Values / Notes                                    |
+|--------------------|----------|---------------------------------------------------|
+| Quote Text         | title    | The verbatim quote                                |
+| Speaker            | text     | Participant name or anonymized ID                 |
+| Sentiment          | select   | Positive / Negative / Neutral / Frustrated        |
+| Quote Type         | select   | Pain Point / Insight / Feature Request / Praise   |
+| Related Issue      | relation | → Issues DB (578ede18...)                         |
+| Related Persona    | relation | → Personas DB (05336641...)                       |
+| Competitor Mentioned | relation | → Competitive Landscape DB (0d8b7908...)        |
 
 ---
 
-## 5. Competitive Landscape
+## 4. Competitive Landscape
 
-Pre-populated from BrowserBase scraping.
+Populated by the Notion Agent when Issues are flagged with Exa Trigger. Empty until Exa searches fire.
 
-Database ID: 38e7bdee-9467-4370-91b9-cbf800fb9bfe
+Data Source ID: `0d8b7908-7d82-4c8c-b4e9-8090b650d0ad`
 
-| Property         | Type         | Values / Notes                                     |
-|------------------|--------------|----------------------------------------------------|
-| Competitor Name  | title        | Company/product name                               |
-| Website          | url          | Main product URL                                   |
-| Pricing Tiers    | text         | Extracted pricing structure                        |
-| Key Features     | multi_select | AI PRD Generation / User Interviews / Survey Builder / Research Repository / Insight Tagging / Video Recording / Usability Testing / Collaboration / Integrations / Analytics Dashboard / Template Library / Feedback Management |
-| Recent Changes   | text         | Latest changelog entries                           |
-| Last Scraped     | date         | When data was last updated                         |
-| User Sentiment   | select       | Positive / Mixed / Negative                       |
-| Review Count     | number       | Total reviews found                                |
-| Research Project | relation     | → Research Projects DB (ff506189...)               |
-| Relevant Quotes  | relation     | → Quotes & Evidence DB (7eb00b51...)               |
+| Property         | Type   | Values / Notes                                      |
+|------------------|--------|-----------------------------------------------------|
+| Competitor Name  | title  | Company/product name                                |
+| Website          | url    | Main product URL                                    |
+| Key Features     | text   | What they offer                                     |
+| Pricing          | text   | Pricing structure                                   |
+| User Sentiment   | select | Positive / Mixed / Negative                         |
 
 ---
 
-## 6. Insights & Themes
+## Relation Map
 
-The synthesis layer. Written by Custom Agents or post-processing.
+```
+Quotes ──→ Issues (Related Issue)
+Quotes ──→ Personas (Related Persona)
+Quotes ──→ Competitive Landscape (Competitor Mentioned)
+Issues ──→ Personas (Related Persona)
+Issues ──→ Quotes (Related Quotes)
+Issues ──[Exa Trigger]──→ Competitive Landscape (created by Notion Agent)
+```
 
-Database ID: 527a24c2-86c0-4c2e-8077-673c587e1dd3
+## Agent Write Examples
 
-| Property            | Type     | Values / Notes                                      |
-|---------------------|----------|-----------------------------------------------------|
-| Insight             | title    | e.g., "Users need guided onboarding, not docs"      |
-| Research Project    | relation | → Research Projects DB (ff506189...)                |
-| Confidence          | select   | High / Medium / Low                                 |
-| Confidence Score    | number   | 0-1 based on evidence density + source diversity    |
-| Category            | select   | Pain Point / Need / Opportunity / Risk / Validation |
-| Supporting Quotes   | relation | → Quotes & Evidence DB (7eb00b51...)                |
-| Supporting Articles | relation | → Market Intelligence DB (abed5ac9...)              |
-| Competitor Evidence | relation | → Competitive Landscape DB (0d8b7908...)            |
-| Summary             | text     | Claude-generated synthesis paragraph                |
-| Implications        | text     | What this means for product decisions               |
-| Status              | select   | Emerging / Validated / Actionable / Archived        |
+### Claude Agent → Write Quote
 
----
+```python
+notion.create_page(
+    data_source_id="5084a27c-ae6a-406d-a1d1-85cd3de78111",
+    properties={
+        "Quote Text": quote_text,
+        "Speaker": speaker_name,
+        "Sentiment": "Frustrated",
+        "Quote Type": "Pain Point",
+    }
+)
+```
 
-## 7. Action Items / PRD Seeds
+### Claude Agent → Write Issue
 
-Research-grounded recommendations. Written by Custom Agent.
+```python
+notion.create_page(
+    data_source_id="578ede18-7e6d-4548-a5a0-9d7ec6da13f0",
+    properties={
+        "Issue Title": issue_title,
+        "Issue Type": "Pain Point",
+        "Issue Details": details,
+        "Severity": "High",
+    }
+)
+```
 
-Database ID: 7cfe54f6-25f7-475a-9005-ff2030c924ad
+### Claude Agent → Write Persona
 
-| Property             | Type     | Values / Notes                                     |
-|----------------------|----------|----------------------------------------------------|
-| Action               | title    | What to do / build                                 |
-| Research Project     | relation | → Research Projects DB (ff506189...)               |
-| Type                 | select   | Feature / Improvement / Investigation / Pivot      |
-| Priority             | select   | P0 / P1 / P2 / P3                                 |
-| Supporting Insights  | relation | → Insights & Themes DB (ed311949...)               |
-| Status               | select   | Proposed / Accepted / In Progress / Done           |
-| Owner                | person   | Assigned PM/engineer                               |
+```python
+notion.create_page(
+    data_source_id="05336641-2386-44d6-adb0-45c4e11116b7",
+    properties={
+        "Persona Type": persona_label,
+        "Primary Use Case": use_case,
+        "Communication Style": "Analytical",
+        "Goals": goals_text,
+        "Constraints": constraints_text,
+    }
+)
+```
 
----
+### Notion Agent → Enrich Issue
 
-## Relation Map (how DBs connect)
+```python
+notion.update_page(
+    page_id=issue_page_id,
+    properties={
+        "Engineer Matching": "Backend + ML — needs data pipeline expertise",
+        "Graph Type": "Bar",
+        "Exa Trigger": "__YES__",
+    }
+)
+```
 
-Research Projects (hub)
-  ├── Interview Transcripts (→ Research Project)
-  │     └── Quotes & Evidence (→ Interview Transcript)
-  ├── Quotes & Evidence (→ Research Project, → Competitor, → Related Themes)
-  ├── Market Intelligence (→ Research Project, → Related Themes)
-  ├── Competitive Landscape (→ Research Project, → Relevant Quotes)
-  ├── Insights & Themes (→ Research Project, → Supporting Quotes, → Supporting Articles, → Competitor Evidence)
-  └── Action Items (→ Research Project, → Supporting Insights)
+### Notion Agent → Create Competitor (from Exa)
+
+```python
+notion.create_page(
+    data_source_id="0d8b7908-7d82-4c8c-b4e9-8090b650d0ad",
+    properties={
+        "Competitor Name": competitor_name,
+        "Website": url,
+        "Key Features": features_summary,
+        "Pricing": pricing_info,
+        "User Sentiment": "Mixed",
+    }
+)
+```

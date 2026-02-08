@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { InterviewTranscript } from '../types/transcript.ts';
-import { fetchTranscripts } from '../services/api.ts';
+import type { Persona } from '../types/persona.ts';
+import { fetchPersonas } from '../services/api.ts';
 
-export function useTranscripts(projectId: string) {
-  const [data, setData] = useState<InterviewTranscript[] | null>(null);
+export function usePersonas() {
+  const [data, setData] = useState<Persona[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchTranscripts(projectId)
+    fetchPersonas()
       .then(setData)
       .catch(setError)
       .finally(() => setLoading(false));
-  }, [projectId]);
+  }, []);
 
   useEffect(() => {
     refresh();

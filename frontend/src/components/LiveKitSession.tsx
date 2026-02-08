@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   LiveKitRoom,
   useVoiceAssistant,
@@ -8,11 +8,21 @@ import {
 } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { Mic, Phone, PhoneOff } from 'lucide-react';
+import { useTranscriptCollector, type TranscriptEntry } from '../hooks/useTranscriptCollector';
 
 const TOKEN_URL = import.meta.env.VITE_TOKEN_URL || '/api/token';
 
-function VoiceAssistantUI() {
+interface VoiceAssistantUIProps {
+  transcriptRef: React.MutableRefObject<TranscriptEntry[]>;
+}
+
+function VoiceAssistantUI({ transcriptRef }: VoiceAssistantUIProps) {
   const { state, audioTrack } = useVoiceAssistant();
+  const collectedTranscript = useTranscriptCollector();
+
+  useEffect(() => {
+    transcriptRef.current = collectedTranscript.current;
+  });
 
   const label =
     state === 'listening'
@@ -49,22 +59,30 @@ function VoiceAssistantUI() {
   );
 }
 
-export default function LiveKitSession() {
+interface LiveKitSessionProps {
+  onInterviewComplete?: (transcript: TranscriptEntry[]) => void;
+  participantMetadata?: string;
+}
+
+export default function LiveKitSession({ onInterviewComplete, participantMetadata }: LiveKitSessionProps) {
   const [connectionDetails, setConnectionDetails] = useState<{
     token: string;
     url: string;
   } | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const transcriptRef = useRef<TranscriptEntry[]>([]);
 
   const startInterview = useCallback(async () => {
     setConnecting(true);
     setError(null);
     try {
       const roomName = `prism-interview-${Date.now()}`;
-      const resp = await fetch(
-        `${TOKEN_URL}?room=${encodeURIComponent(roomName)}&identity=participant`
-      );
+      let url = `${TOKEN_URL}?room=${encodeURIComponent(roomName)}&identity=participant`;
+      if (participantMetadata) {
+        url += `&metadata=${encodeURIComponent(participantMetadata)}`;
+      }
+      const resp = await fetch(url);
       if (!resp.ok) throw new Error('Failed to get token');
       const data = await resp.json();
       setConnectionDetails({ token: data.token, url: data.url });
@@ -73,11 +91,16 @@ export default function LiveKitSession() {
     } finally {
       setConnecting(false);
     }
-  }, []);
+  }, [participantMetadata]);
 
   const handleDisconnect = useCallback(() => {
+    const transcript = transcriptRef.current;
     setConnectionDetails(null);
-  }, []);
+    if (transcript.length > 0 && onInterviewComplete) {
+      onInterviewComplete(transcript);
+    }
+    transcriptRef.current = [];
+  }, [onInterviewComplete]);
 
   if (error) {
     return (
@@ -128,7 +151,7 @@ export default function LiveKitSession() {
         onDisconnected={handleDisconnect}
         style={{ height: '100%' }}
       >
-        <VoiceAssistantUI />
+        <VoiceAssistantUI transcriptRef={transcriptRef} />
       </LiveKitRoom>
     </div>
   );
